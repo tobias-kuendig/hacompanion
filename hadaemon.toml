@@ -1,0 +1,23 @@
+global_preifx = "linux"
+
+[integration.webcam]
+enabled = true
+name = "webcam_process_count"
+
+[integration.cpu_temp]
+enabled = true
+name = "linux_cpu_temp"
+
+[integration.audio_volume]
+
+
+[integration.script]
+enabled = false
+
+[integration.script.meta]
+scripts = [
+    "abc",
+    "def",
+]
+
+
