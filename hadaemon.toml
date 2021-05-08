@@ -1,15 +1,33 @@
-global_preifx = "linux"
+prefix = "linux_"
+token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIzZGQyNGFhMWZiOWY0NjhjYWU2YjBmMDYwMGVkOGU1ZiIsImlhdCI6MTYyMDIzODA3MSwiZXhwIjoxOTM1NTk4MDcxfQ.acv3qSoz9IdLVN6oJofTafMPovqGri-L1Efrk3Q255w"
+host = "http://192.168.1.77:8123"
 
 [integration.webcam]
 enabled = true
 name = "webcam_process_count"
 
+# Requires lm-sensors package to be installed
 [integration.cpu_temp]
 enabled = true
-name = "linux_cpu_temp"
+name = "cpu_temp"
+meta = { celcius = true }
+
+[integration.powered_on]
+enabled = true
+name = "powered_on"
+
+[integration.online]
+enabled = true
+name = "online"
+meta = { host = "google.com" }
+
+[integration.load_avg]
+enabled = true
+name = "load_avg"
 
 [integration.audio_volume]
-
+enabled = true
+name = "audio_volume"
 
 [integration.script]
 enabled = false
