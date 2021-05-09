@@ -1,5 +1,4 @@
-prefix = "linux_"
-device_name = "My Laptop"
+device_name = "Dell Laptop"
 token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIzZGQyNGFhMWZiOWY0NjhjYWU2YjBmMDYwMGVkOGU1ZiIsImlhdCI6MTYyMDIzODA3MSwiZXhwIjoxOTM1NTk4MDcxfQ.acv3qSoz9IdLVN6oJofTafMPovqGri-L1Efrk3Q255w"
 host = "http://192.168.1.77:8123"
 
@@ -12,6 +11,15 @@ name = "Webcam Process Count"
 enabled = true
 name = "CPU Temperature"
 meta = { celcius = true }
+
+[sensor.memory]
+enabled = true
+name = "Memory"
+
+[sensor.power]
+enabled = true
+name = "Power"
+meta = { battery = "BAT0" }
 
 #[sensor.powered_on]
 #enabled = true

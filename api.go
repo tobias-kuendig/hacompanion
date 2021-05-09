@@ -16,19 +16,22 @@ import (
 )
 
 type RegisterDeviceRequest struct {
-	DeviceID           string `json:"device_id"`
-	AppID              string `json:"app_id"`
-	AppName            string `json:"app_name"`
-	AppVersion         string `json:"app_version"`
-	DeviceName         string `json:"device_name"`
-	Manufacturer       string `json:"manufacturer"`
-	Model              string `json:"model"`
-	OsName             string `json:"os_name"`
-	OsVersion          string `json:"os_version"`
-	SupportsEncryption bool   `json:"supports_encryption"`
-	AppData            struct {
-		PushNotificationKey string `json:"push_notification_key"`
-	} `json:"app_data"`
+	DeviceID           string  `json:"device_id"`
+	AppID              string  `json:"app_id"`
+	AppName            string  `json:"app_name"`
+	AppVersion         string  `json:"app_version"`
+	DeviceName         string  `json:"device_name"`
+	Manufacturer       string  `json:"manufacturer"`
+	Model              string  `json:"model"`
+	OsName             string  `json:"os_name"`
+	OsVersion          string  `json:"os_version"`
+	SupportsEncryption bool    `json:"supports_encryption"`
+	AppData            AppData `json:"app_data"`
+}
+
+type AppData struct {
+	PushToken string `json:"push_token"`
+	PushURL   string `json:"push_url"`
 }
 
 type RegisterSensorRequest struct {
@@ -65,6 +68,25 @@ type Registration struct {
 	RemoteUIURL  string `json:"remote_ui_url"`
 	Secret       string `json:"secret"`
 	WebhookID    string `json:"webhook_id"`
+	PushToken    string `json:"push_token"`
+}
+
+type PushNotificationRequest struct {
+	Message          string `json:"message"`
+	Title            string `json:"title"`
+	PushToken        string `json:"push_token"`
+	RegistrationInfo struct {
+		AppId      string `json:"app_id"`
+		AppVersion string `json:"app_version"`
+		OsVersion  string `json:"os_version"`
+	} `json:"registration_info"`
+	Data PushNotificationData `json:"data"`
+}
+
+type PushNotificationData struct {
+	Key     string `json:"key"`
+	Urgency string `json:"urgency"`
+	Expire  int    `json:"expire"`
 }
 
 func (api *API) URL(skipCloud bool) string {

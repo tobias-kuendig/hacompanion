@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/rand"
+	"os"
 	"strings"
 	"unicode"
 )
@@ -10,6 +11,7 @@ import (
 // acronyms are converted to lower-case and preceded by an underscore.
 // @see https://gist.github.com/elwinar/14e1e897fdbe4d3432e1#gistcomment-2246837
 func ToSnakeCase(in string) string {
+	in = strings.TrimSpace(in)
 	runes := []rune(strings.ReplaceAll(in, " ", "_"))
 
 	var out []rune
@@ -32,3 +34,26 @@ func RandomString(n int) string {
 	}
 	return string(s)
 }
+
+func stringToOnOff(in string) string {
+	in = strings.TrimSpace(in)
+	if in == "1" {
+		return "on"
+	}
+	if in == "0" {
+		return "off"
+	}
+	return ""
+}
+
+func fileExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+

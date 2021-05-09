@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"sync"
 	"time"
@@ -55,6 +56,50 @@ func main() {
 		}
 	}
 
+	go func(ctx context.Context, registration Registration) {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/notification", func(w http.ResponseWriter, r *http.Request) {
+			var notification Notification
+			var req PushNotificationRequest
+			w.Header().Set("Content-Type", "application/json")
+			err := json.NewDecoder(r.Body).Decode(&req)
+			if err != nil {
+				respondError(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			if req.PushToken != registration.PushToken {
+				respondError(w, "wrong token", http.StatusUnauthorized)
+				return
+			}
+			err = notification.Send(r.Context(), req.Title, req.Message, req.Data)
+			if err != nil {
+				respondError(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(201)
+			respondSuccess(w)
+		})
+		srv := &http.Server{
+			Addr:    ":8080",
+			Handler: mux,
+		}
+
+		go func() {
+			// Use the default DefaultServeMux.
+			err := srv.ListenAndServe()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}()
+
+		<-ctx.Done()
+
+		if err = srv.Shutdown(ctx); err != nil {
+			log.Fatalf("server Shutdown Failed: %+s", err)
+		}
+
+	}(ctx, registration)
+
 	var wg sync.WaitGroup
 	outputs := Outputs{
 		lock: sync.Mutex{},
@@ -80,6 +125,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to update sensor data: %s", err)
 	}
+	time.Sleep(10 * time.Minute)
 	os.Exit(2)
 }
 
@@ -101,6 +147,18 @@ var sensorDefinitions = map[string]func(m Meta) sensorDefinition{
 			deviceClass: "temperature",
 			icon:        "mdi:thermometer",
 			unit:        unit,
+		}
+	},
+	"memory": func(m Meta) sensorDefinition {
+		return sensorDefinition{
+			runner: func(Meta) runner { return NewMemory() },
+			icon:   "mdi:memory",
+		}
+	},
+	"power": func(m Meta) sensorDefinition {
+		return sensorDefinition{
+			runner: func(m Meta) runner { return NewPower(m) },
+			icon:   "mdi:battery",
 		}
 	},
 	"load_avg": func(m Meta) sensorDefinition {
@@ -179,6 +237,7 @@ func getRegistration(ctx context.Context, api *API, config Config) (Registration
 
 func registerDevice(ctx context.Context, api *API, config Config) (Registration, error) {
 	id := RandomString(8)
+	token := RandomString(8)
 	registration, err := api.RegisterDevice(ctx, RegisterDeviceRequest{
 		DeviceID:           id,
 		AppID:              "hadaemon",
@@ -186,10 +245,15 @@ func registerDevice(ctx context.Context, api *API, config Config) (Registration,
 		AppVersion:         "1.0",
 		DeviceName:         config.DeviceName,
 		SupportsEncryption: false,
+		AppData: AppData{
+			PushToken: token,
+			PushURL: "http://192.168.1.2:8080/notification",
+		},
 	})
 	if err != nil {
 		return registration, err
 	}
+	registration.PushToken = token
 	// Parse the response and save it to the filesystem.
 	j, err := registration.JSON()
 	if err != nil {
@@ -237,6 +301,15 @@ func (m Meta) GetBool(key string) bool {
 	return false
 }
 
+func (m Meta) GetString(key string) string {
+	if v, ok := m[key]; ok {
+		if value, isString := v.(string); isString {
+			return value
+		}
+	}
+	return ""
+}
+
 type Outputs struct {
 	data []*Output
 	lock sync.Mutex
@@ -257,4 +330,33 @@ func (i Sensor) start(ctx context.Context, wg *sync.WaitGroup, outputs *Outputs)
 	}
 	log.Printf("received payload: %+v", value)
 	outputs.Add(Output{sensor: i, payload: value})
+}
+
+func respondError(w http.ResponseWriter, error string, status int) {
+	var resp struct {
+		Error string `json:"errorMessage"`
+	}
+	resp.Error = error
+	b, err := json.Marshal(resp)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, string(b))))
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	w.WriteHeader(status)
+	w.Write(b)
+}
+
+// Home Assistant errors without a rateLimits response.
+// There is no rate limiting implemented on our side so we return a dummy response.
+func respondSuccess(w http.ResponseWriter) {
+	w.Write([]byte(`
+		{
+			"rateLimits": {
+				"successful": 1,
+				"errors": 0,
+				"maximum": 150,
+				"resetsAt": "2019-04-08T00:00:00.000Z"
+			}
+		}
+	`))
 }
