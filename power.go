@@ -47,7 +47,7 @@ func (pwr Power) run(ctx context.Context) (*payload, error) {
 		case "capacity_level":
 			p.Attributes["level"] = pwr.optimisticRead(filepath.Join(realPath, d.Name()))
 		case "present":
-			p.Attributes["present"] = stringToOnOff(pwr.optimisticRead(filepath.Join(realPath, d.Name())))
+			p.Attributes["battery_present"] = stringToOnOff(pwr.optimisticRead(filepath.Join(realPath, d.Name())))
 		case "status":
 			p.Attributes["status"] = pwr.optimisticRead(filepath.Join(realPath, d.Name()))
 		case "voltage_now":
