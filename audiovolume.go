@@ -3,11 +3,12 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os/exec"
 	"regexp"
 )
 
-var reAudioVolume = regexp.MustCompile(`(?m)Playback \d+ \[(?P<volume>\d{1,3})%\] \[(?P<state>on|off)\]`)
+var reAudioVolume = regexp.MustCompile(`(?m)Playback \d+ \[(?P<volume>\d{1,3})%\]\s?(?:\[.+\])?\s?\[(?P<state>on|off)\]`)
 
 type AudioVolume struct{}
 
@@ -15,7 +16,7 @@ func NewAudioVolume() *AudioVolume {
 	return &AudioVolume{}
 }
 
-func (a AudioVolume) run(ctx context.Context) (*payloads, error) {
+func (a AudioVolume) run(ctx context.Context) (*payload, error) {
 	var output string
 	var err error
 	output, err = a.getOutput(ctx)
@@ -45,21 +46,21 @@ func (a AudioVolume) getOutput(ctx context.Context, flags ...string) (string, er
 	return out.String(), nil
 }
 
-func (a AudioVolume) process(output string) (*payloads, error) {
+func (a AudioVolume) process(output string) (*payload, error) {
+	p := NewPayload()
 	matches := reAudioVolume.FindStringSubmatch(output)
 	result := make(map[string]string)
-	for i, name := range reAudioVolume.SubexpNames() {
+	names := reAudioVolume.SubexpNames()
+	if len(names) != len(matches) {
+		return nil, fmt.Errorf("failed to parse amixer output, regex did not return expected matches")
+	}
+	for i, name := range names {
 		if i != 0 && name != "" {
 			result[name] = matches[i]
 		}
 	}
-	p := MultiplePayloads()
 	if volume, ok := result["volume"]; ok {
-		p.Add(payload{
-			Name:       "percentage",
-			State:      volume,
-			Attributes: map[string]string{"unit_of_measurement": "%", "friendly_name": "Volume Level Percentage"},
-		})
+		p.State = volume
 	}
 	if muted, ok := result["state"]; ok {
 		// switch the muted state: amixer returns "on" for an enabled device and "off" for a muted device.
@@ -69,11 +70,7 @@ func (a AudioVolume) process(output string) (*payloads, error) {
 		} else {
 			muted = "off"
 		}
-		p.Add(payload{
-			Name:  "muted",
-			State: muted,
-			Attributes: map[string]string{"friendly_name": "Volume Muted"},
-		})
+		p.Attributes["muted"] = muted
 	}
 	return p, nil
 }

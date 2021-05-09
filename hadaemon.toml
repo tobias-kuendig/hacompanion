@@ -1,38 +1,39 @@
 prefix = "linux_"
+device_name = "My Laptop"
 token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIzZGQyNGFhMWZiOWY0NjhjYWU2YjBmMDYwMGVkOGU1ZiIsImlhdCI6MTYyMDIzODA3MSwiZXhwIjoxOTM1NTk4MDcxfQ.acv3qSoz9IdLVN6oJofTafMPovqGri-L1Efrk3Q255w"
 host = "http://192.168.1.77:8123"
 
-[integration.webcam]
+[sensor.webcam]
 enabled = true
-name = "webcam_process_count"
+name = "Webcam Process Count"
 
 # Requires lm-sensors package to be installed
-[integration.cpu_temp]
+[sensor.cpu_temp]
 enabled = true
-name = "cpu_temp"
+name = "CPU Temperature"
 meta = { celcius = true }
 
-[integration.powered_on]
-enabled = true
-name = "powered_on"
+#[sensor.powered_on]
+#enabled = true
+#name = "Powered On"
 
-[integration.online]
-enabled = true
-name = "online"
-meta = { host = "google.com" }
+#[sensor.online]
+#enabled = true
+#name = "Is Online"
+#meta = { host = "google.com" }
 
-[integration.load_avg]
+[sensor.load_avg]
 enabled = true
-name = "load_avg"
+name = "Load Avg"
 
-[integration.audio_volume]
+[sensor.audio_volume]
 enabled = true
-name = "audio_volume"
+name = "Audio Volume"
 
-[integration.script]
+[sensor.script]
 enabled = false
 
-[integration.script.meta]
+[sensor.script.meta]
 scripts = [
     "abc",
     "def",

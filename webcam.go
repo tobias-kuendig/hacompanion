@@ -16,7 +16,7 @@ func NewWebCam() *WebCam {
 	return &WebCam{}
 }
 
-func (w WebCam) run(ctx context.Context) (*payloads, error) {
+func (w WebCam) run(ctx context.Context) (*payload, error) {
 	var err error
 	var out bytes.Buffer
 	cmd := exec.CommandContext(ctx, "lsmod")
@@ -41,10 +41,7 @@ func (w WebCam) run(ctx context.Context) (*payloads, error) {
 	if procCount == "" {
 		return nil, errors.New("did no find uvcvideo in lsmod output, failed to determine webcam usage")
 	}
-	return SinglePayload(payload{
-		State: procCount,
-		Attributes: map[string]string{
-			"friendly_name": "Webcam Process Count",
-		},
-	}), nil
+	p := NewPayload()
+	p.State = procCount
+	return p, nil
 }

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCPUTemp(t *testing.T) {
@@ -25,22 +26,17 @@ func TestCPUTemp(t *testing.T) {
 		Adapter: Virtual device
 		temp1:        +37.0°C  
 	`
-	output := &payloads{data: []payload{
-		{
-			State: "99.0",
-			Attributes: map[string]string{
-				"unit_of_measurement": "C",
-				"device_class":        "temperature",
-				"friendly_name":       "CPU Temperature",
-				"core_0":              "34.0",
-				"core_1":              "35.0",
-				"core_2":              "36.0",
-				"core_3":              "37.0",
-				"core_4":              "38.0",
-				"core_5":              "39.0",
-			},
+	output := &payload{
+		State: "99.0",
+		Attributes: map[string]string{
+			"core_0": "34.0",
+			"core_1": "35.0",
+			"core_2": "36.0",
+			"core_3": "37.0",
+			"core_4": "38.0",
+			"core_5": "39.0",
 		},
-	}}
+	}
 
 	c := NewCPUTemp(Meta{"celcius": true})
 

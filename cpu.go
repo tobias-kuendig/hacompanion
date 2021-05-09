@@ -23,7 +23,7 @@ func NewCPUTemp(m Meta) *CPUTemp {
 	return c
 }
 
-func (c CPUTemp) run(ctx context.Context) (*payloads, error) {
+func (c CPUTemp) run(ctx context.Context) (*payload, error) {
 	var out bytes.Buffer
 	var args []string
 	if !c.UseCelcius {
@@ -38,18 +38,9 @@ func (c CPUTemp) run(ctx context.Context) (*payloads, error) {
 	return c.process(out.String())
 }
 
-func (c CPUTemp) process(output string) (*payloads, error) {
-	unit := "C"
-	if !c.UseCelcius {
-		unit = "F"
-	}
-	p := payload{}
+func (c CPUTemp) process(output string) (*payload, error) {
+	p := NewPayload()
 	matches := reCPUTemp.FindAllStringSubmatch(output, -1)
-	attrs := map[string]string{
-		"unit_of_measurement": unit,
-		"friendly_name":       "CPU Temperature",
-		"device_class":        "temperature",
-	}
 	for _, match := range matches {
 		if len(match) < 3 {
 			return nil, fmt.Errorf("invalid output form lm-sensors received: %s", output)
@@ -57,12 +48,11 @@ func (c CPUTemp) process(output string) (*payloads, error) {
 		if strings.EqualFold(match[1], "Package id") {
 			p.State = match[2]
 		} else {
-			attrs[ToSnakeCase(match[1])] = match[2]
+			p.Attributes[ToSnakeCase(match[1])] = match[2]
 		}
 	}
 	if p.State == "" {
 		return nil, fmt.Errorf("failed to parse cpu temperature state out of lm-sensors output: %s", output)
 	}
-	p.Attributes = attrs
-	return SinglePayload(p), nil
+	return p, nil
 }
