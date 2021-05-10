@@ -30,7 +30,7 @@ func (w LoadAVG) run(ctx context.Context) (*payload, error) {
 		if index <= 2 {
 			float, err = strconv.ParseFloat(load, 32)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse loadavg %d: %w", load, err)
+				return nil, fmt.Errorf("failed to parse loadavg %s: %w", load, err)
 			}
 			// Round to two decimal places.
 			float = math.Floor(float * 100) / 100

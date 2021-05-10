@@ -83,7 +83,7 @@ type sensorDefinition struct {
 var sensorDefinitions = map[string]func(m Meta) sensorDefinition{
 	"cpu_temp": func(m Meta) sensorDefinition {
 		unit := "C"
-		if !m.GetBool("celcius") {
+		if !m.GetBool("celsius") {
 			unit = "F"
 		}
 		return sensorDefinition{

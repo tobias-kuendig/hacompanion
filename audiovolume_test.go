@@ -18,7 +18,7 @@ func TestAudioVolume(t *testing.T) {
 	`
 	output := &payload{
 		State: "75",
-		Attributes: map[string]string{
+		Attributes: map[string]interface{}{
 			"muted": "off",
 		},
 	}

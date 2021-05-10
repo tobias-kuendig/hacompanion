@@ -17,7 +17,7 @@ func TestMemory(t *testing.T) {
 	`
 	output := &payload{
 		State: "479256",
-		Attributes: map[string]string{
+		Attributes: map[string]interface{}{
 			"mem_total": "16279032",
 			"mem_available": "4469240",
 			"swap_total": "16658428",

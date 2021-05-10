@@ -59,6 +59,6 @@ func (s NotificationServer) Listen(ctx context.Context) {
 	<-ctx.Done()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Printf("ERROR: server shutdown failed: %w", err)
+		log.Printf("ERROR: server shutdown failed: %s", err)
 	}
 }

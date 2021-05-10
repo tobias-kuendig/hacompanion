@@ -10,11 +10,11 @@ name = "Webcam Process Count"
 [sensor.cpu_temp]
 enabled = true
 name = "CPU Temperature"
-meta = { celcius = true }
+meta = { celsius = true }
 
-# [sensor.cpu_usage]
-# enabled = true
-# name = "CPU Usage"
+[sensor.cpu_usage]
+enabled = true
+name = "CPU Usage"
 
 [sensor.uptime]
 enabled = true

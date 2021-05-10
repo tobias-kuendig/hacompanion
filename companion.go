@@ -62,6 +62,6 @@ func (c *Companion) UpdateSensorData(ctx context.Context) {
 
 	err := c.api.UpdateSensorData(ctx, data)
 	if err != nil {
-		log.Printf("failed to update sensor data: %w", err)
+		log.Printf("failed to update sensor data: %s", err)
 	}
 }
