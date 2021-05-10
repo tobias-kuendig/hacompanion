@@ -11,8 +11,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 type RegisterDeviceRequest struct {
@@ -140,7 +138,6 @@ func (api *API) sendRequest(ctx context.Context, url string, payload []byte) ([]
 	if err != nil {
 		return nil, err
 	}
-	spew.Dump("xxx", resp.StatusCode)
 	if resp.StatusCode >= 400 {
 		return nil, errors.New(fmt.Sprintf("received invalid status code %d (%s)", resp.StatusCode, body))
 	}
@@ -201,4 +198,22 @@ func (api *API) UpdateSensorData(ctx context.Context, data []UpdateSensorDataReq
 		_, err = api.sendRequest(ctx, api.URL(true), j)
 	}
 	return err
+}
+
+// RegisterSensors register's a slice of sensors in Home Assistant.
+func (api *API) RegisterSensors(ctx context.Context, sensors []Sensor) error {
+	for _, sensor := range sensors {
+		err := api.RegisterSensor(ctx, RegisterSensorRequest{
+			Type:              "sensor",
+			DeviceClass:       sensor.deviceClass,
+			Icon:              sensor.icon,
+			Name:              sensor.name,
+			UniqueId:          sensor.uniqueID,
+			UnitOfMeasurement: sensor.unit,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to register sensor %s: %w", sensor.uniqueID, err)
+		}
+	}
+	return nil
 }

@@ -7,8 +7,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 type Power struct {
@@ -67,7 +65,6 @@ func (pwr Power) run(ctx context.Context) (*payload, error) {
 		if realPath, err := filepath.EvalSymlinks(acLink); err == nil {
 			acInfo := filepath.Join(realPath, "online")
 			if exists, _ := fileExists(acLink); exists {
-				spew.Dump("READING", pwr.optimisticRead(acInfo))
 				p.Attributes["ac_connected"] = stringToOnOff(pwr.optimisticRead(acInfo))
 			}
 		}

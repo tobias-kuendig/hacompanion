@@ -18,6 +18,7 @@ import (
 var registrationFile = "registration.json"
 
 func main() {
+	// Try to parse the config file.
 	var config Config
 	b, err := ioutil.ReadFile("hadaemon.toml")
 	if err != nil {
@@ -26,107 +27,50 @@ func main() {
 	if _, err = toml.Decode(string(b), &config); err != nil {
 		log.Fatalf("failed to parse config file: %s", err)
 	}
-
-	api := NewAPI(config.Host, config.Token)
-	ctx := context.Background()
+	// Get some randomness going.
 	rand.Seed(time.Now().UnixNano())
+	// Start the main process.
+	ctx := context.Background()
+	api := NewAPI(config.Host, config.Token)
+	if err := run(ctx, config, api); err != nil {
+		log.Fatalf("exited with error: %s", err)
+	}
+}
 
+func run (ctx context.Context, config Config, api *API) error {
+	// Make sure the device is registered in Home Assistant.
 	registration, err := getRegistration(ctx, api, config)
 	if err != nil {
-		log.Fatalf("failed to get device registration: %s", err)
+		return fmt.Errorf("failed to get device registrationo: %w", err)
 	}
 	api.registration = registration
 
+	// Parse all sensors out of the config file and register them in Home Assistant.
 	sensors, err := buildSensors(config)
 	if err != nil {
-		log.Fatalf("failed to build sensors from config: %s", err)
+		return fmt.Errorf("failed to build sensors from config: %w", err)
 	}
-
-	for _, sensor := range sensors {
-		err = api.RegisterSensor(ctx, RegisterSensorRequest{
-			Type:              "sensor",
-			DeviceClass:       sensor.deviceClass,
-			Icon:              sensor.icon,
-			Name:              sensor.name,
-			UniqueId:          sensor.uniqueID,
-			UnitOfMeasurement: sensor.unit,
-		})
-		if err != nil {
-			log.Fatalf("failed to register sensor: %s", err)
-		}
-	}
-
-	go func(ctx context.Context, registration Registration) {
-		mux := http.NewServeMux()
-		mux.HandleFunc("/notification", func(w http.ResponseWriter, r *http.Request) {
-			var notification Notification
-			var req PushNotificationRequest
-			w.Header().Set("Content-Type", "application/json")
-			err := json.NewDecoder(r.Body).Decode(&req)
-			if err != nil {
-				respondError(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			if req.PushToken != registration.PushToken {
-				respondError(w, "wrong token", http.StatusUnauthorized)
-				return
-			}
-			err = notification.Send(r.Context(), req.Title, req.Message, req.Data)
-			if err != nil {
-				respondError(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			w.WriteHeader(201)
-			respondSuccess(w)
-		})
-		srv := &http.Server{
-			Addr:    ":8080",
-			Handler: mux,
-		}
-
-		go func() {
-			// Use the default DefaultServeMux.
-			err := srv.ListenAndServe()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}()
-
-		<-ctx.Done()
-
-		if err = srv.Shutdown(ctx); err != nil {
-			log.Fatalf("server Shutdown Failed: %+s", err)
-		}
-
-	}(ctx, registration)
-
-	var wg sync.WaitGroup
-	outputs := Outputs{
-		lock: sync.Mutex{},
-		data: make([]*Output, 0),
-	}
-	for _, sensor := range sensors {
-		wg.Add(1)
-		go sensor.start(ctx, &wg, &outputs)
-	}
-	wg.Wait()
-
-	var data []UpdateSensorDataRequest
-	for _, output := range outputs.data {
-		data = append(data, UpdateSensorDataRequest{
-			Type:       "sensor",
-			State:      output.payload.State,
-			Attributes: output.payload.Attributes,
-			UniqueId:   output.sensor.uniqueID,
-			Icon:       output.sensor.icon,
-		})
-	}
-	err = api.UpdateSensorData(ctx, data)
+	err = api.RegisterSensors(ctx, sensors)
 	if err != nil {
-		log.Fatalf("failed to update sensor data: %s", err)
+		return err
 	}
-	time.Sleep(10 * time.Minute)
-	os.Exit(2)
+
+	// Start the notifications server.
+	notifications := NewNotificationServer(registration)
+	go notifications.Listen(ctx)
+
+	// The Companion gathers sensor data and forwards it to Home Assistant.
+	companion := NewCompanion(api, sensors)
+
+	t := time.NewTicker(10 * time.Second)
+	for {
+		select {
+		case <- t.C:
+			companion.UpdateSensorData(ctx)
+		case <- ctx.Done():
+			return nil
+		}
+	}
 }
 
 type sensorDefinition struct {
@@ -157,8 +101,18 @@ var sensorDefinitions = map[string]func(m Meta) sensorDefinition{
 	},
 	"power": func(m Meta) sensorDefinition {
 		return sensorDefinition{
-			runner: func(m Meta) runner { return NewPower(m) },
-			icon:   "mdi:battery",
+			runner:      func(m Meta) runner { return NewPower(m) },
+			icon:        "mdi:battery",
+			deviceClass: "battery",
+			unit:        "%",
+		}
+	},
+	"uptime": func(m Meta) sensorDefinition {
+		return sensorDefinition{
+			runner:      func(Meta) runner { return NewUptime() },
+			icon:        "mdi:sort-clock-descending",
+			deviceClass: "timestamp",
+			unit:        "ISO8601",
 		}
 	},
 	"load_avg": func(m Meta) sensorDefinition {
@@ -189,6 +143,10 @@ type Sensor struct {
 	name        string
 	uniqueID    string
 	unit        string
+}
+
+func (s Sensor) String() string {
+	return fmt.Sprintf("%s (%s)", s.name, s.uniqueID)
 }
 
 func buildSensors(config Config) ([]Sensor, error) {
@@ -247,7 +205,7 @@ func registerDevice(ctx context.Context, api *API, config Config) (Registration,
 		SupportsEncryption: false,
 		AppData: AppData{
 			PushToken: token,
-			PushURL: "http://192.168.1.2:8080/notification",
+			PushURL:   "http://192.168.1.2:8080/notification",
 		},
 	})
 	if err != nil {
@@ -310,26 +268,15 @@ func (m Meta) GetString(key string) string {
 	return ""
 }
 
-type Outputs struct {
-	data []*Output
-	lock sync.Mutex
-}
-
-func (o *Outputs) Add(output Output) {
-	o.lock.Lock()
-	defer o.lock.Unlock()
-	o.data = append(o.data, &output)
-}
-
-func (i Sensor) start(ctx context.Context, wg *sync.WaitGroup, outputs *Outputs) {
+func (s Sensor) update(ctx context.Context, wg *sync.WaitGroup, outputs *Outputs) {
 	defer wg.Done()
-	value, err := i.runner.run(ctx)
+	value, err := s.runner.run(ctx)
 	if err != nil {
-		log.Printf("failed to run sensor %s: %s", i, err)
+		log.Printf("failed to run sensor %s: %s", s, err)
 		return
 	}
 	log.Printf("received payload: %+v", value)
-	outputs.Add(Output{sensor: i, payload: value})
+	outputs.Add(Output{sensor: s, payload: value})
 }
 
 func respondError(w http.ResponseWriter, error string, status int) {

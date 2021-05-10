@@ -1,4 +1,4 @@
-device_name = "Dell Laptop"
+device_name = "Dell Desktop"
 token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIzZGQyNGFhMWZiOWY0NjhjYWU2YjBmMDYwMGVkOGU1ZiIsImlhdCI6MTYyMDIzODA3MSwiZXhwIjoxOTM1NTk4MDcxfQ.acv3qSoz9IdLVN6oJofTafMPovqGri-L1Efrk3Q255w"
 host = "http://192.168.1.77:8123"
 
@@ -11,6 +11,14 @@ name = "Webcam Process Count"
 enabled = true
 name = "CPU Temperature"
 meta = { celcius = true }
+
+# [sensor.cpu_usage]
+# enabled = true
+# name = "CPU Usage"
+
+[sensor.uptime]
+enabled = true
+name = "Last Boot"
 
 [sensor.memory]
 enabled = true
