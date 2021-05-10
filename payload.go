@@ -1,12 +1,12 @@
 package main
 
 type payload struct {
-	State      string            `json:"state,omitempty"`
-	Attributes map[string]string `json:"attributes,omitempty"`
+	State      interface{}            `json:"state,omitempty"`
+	Attributes map[string]interface{} `json:"attributes,omitempty"`
 }
 
 func NewPayload() *payload {
 	return &payload{
-		Attributes: make(map[string]string),
+		Attributes: make(map[string]interface{}),
 	}
 }

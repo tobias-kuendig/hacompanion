@@ -45,6 +45,7 @@ name = "Load Avg"
 [sensor.audio_volume]
 enabled = true
 name = "Audio Volume"
+# TODO: Add primary output device (bluetooth, etc)
 
 [sensor.script]
 enabled = false

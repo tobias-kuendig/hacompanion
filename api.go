@@ -49,11 +49,11 @@ type registerSensorRequestPayload struct {
 }
 
 type UpdateSensorDataRequest struct {
-	Attributes map[string]string `json:"attributes"`
-	Icon       string            `json:"icon"`
-	State      string            `json:"state"`
-	Type       string            `json:"type"`
-	UniqueId   string            `json:"unique_id"`
+	Attributes map[string]interface{} `json:"attributes"`
+	Icon       string                 `json:"icon"`
+	State      interface{}            `json:"state"`
+	Type       string                 `json:"type"`
+	UniqueId   string                 `json:"unique_id"`
 }
 
 type updateSensorRequestPayload struct {
@@ -182,7 +182,7 @@ func (api *API) RegisterSensor(ctx context.Context, data RegisterSensorRequest) 
 func (api *API) UpdateSensorData(ctx context.Context, data []UpdateSensorDataRequest) error {
 	for key := range data {
 		if data[key].Attributes == nil {
-			data[key].Attributes = make(map[string]string)
+			data[key].Attributes = make(map[string]interface{})
 		}
 	}
 	req := updateSensorRequestPayload{

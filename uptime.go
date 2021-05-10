@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -36,7 +35,6 @@ func (u Uptime) process(output string) (*payload, error) {
 	}
 
 	p.State = time.Now().Add(-time.Second * time.Duration(seconds)).Format(time.RFC3339)
-	spew.Dump("TIME", seconds, p.State)
 	p.Attributes["uptime_seconds"] = parts[0]
 
 	return p, nil
