@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"strconv"
 	"strings"
 )
@@ -32,8 +31,7 @@ func (w LoadAVG) run(ctx context.Context) (*payload, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse loadavg %s: %w", load, err)
 			}
-			// Round to two decimal places.
-			float = math.Floor(float * 100) / 100
+			float = roundToTwoDecimals(float)
 		}
 		switch index {
 		case 0:

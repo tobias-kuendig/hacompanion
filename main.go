@@ -62,6 +62,10 @@ func run (ctx context.Context, config Config, api *API) error {
 	// The Companion gathers sensor data and forwards it to Home Assistant.
 	companion := NewCompanion(api, sensors)
 
+	// Run the first update immediately.
+	companion.UpdateSensorData(ctx)
+
+	// Keep updating the sensor data in a regular interval.
 	t := time.NewTicker(10 * time.Second)
 	for {
 		select {
@@ -91,6 +95,13 @@ var sensorDefinitions = map[string]func(m Meta) sensorDefinition{
 			deviceClass: "temperature",
 			icon:        "mdi:thermometer",
 			unit:        unit,
+		}
+	},
+	"cpu_usage": func(m Meta) sensorDefinition {
+		return sensorDefinition{
+			runner:      func(m Meta) runner { return NewCPUUsage() },
+			icon:        "mdi:gauge",
+			unit:        "%",
 		}
 	},
 	"memory": func(m Meta) sensorDefinition {

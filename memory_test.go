@@ -16,12 +16,12 @@ func TestMemory(t *testing.T) {
 		SwapFree:       15672316 kB
 	`
 	output := &payload{
-		State: "479256",
+		State: 468.0,
 		Attributes: map[string]interface{}{
-			"mem_total": "16279032",
-			"mem_available": "4469240",
-			"swap_total": "16658428",
-			"swap_free": "15672316",
+			"mem_total": 15897.5,
+			"mem_available": 15897.5,
+			"swap_total": 16268,
+			"swap_free": 15305,
 		},
 	}
 

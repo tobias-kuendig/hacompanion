@@ -7,14 +7,13 @@ import (
 	"io/ioutil"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 var reCPUTemp = regexp.MustCompile(`(?m)(Package id|Core \d)[\s\d]*:\s+.?([\d\.]+)°`)
-var reCPUUsage = regexp.MustCompile(`(?m)^\s*cpu.*`)
+var reCPUUsage = regexp.MustCompile(`(?m)^\s*cpu(\d+)?.*`)
 
 type CPUTemp struct {
 	UseCelsius bool
@@ -62,8 +61,7 @@ func (c CPUTemp) process(output string) (*payload, error) {
 	return p, nil
 }
 
-
-type CPUUsage struct { }
+type CPUUsage struct{}
 
 func NewCPUUsage() *CPUUsage {
 	return &CPUUsage{}
@@ -79,8 +77,8 @@ func (c CPUUsage) run(ctx context.Context) (*payload, error) {
 		}
 		outputs = append(outputs, string(b))
 		// Don't sleep if this is the last iteration.
-		if i < measurements - 1 {
-			time.Sleep(500 * time.Millisecond)
+		if i < measurements-1 {
+			time.Sleep(1 * time.Second)
 		}
 	}
 	return c.process(outputs)
@@ -88,11 +86,57 @@ func (c CPUUsage) run(ctx context.Context) (*payload, error) {
 
 func (c CPUUsage) process(outputs []string) (*payload, error) {
 	p := NewPayload()
-	for _, output := range outputs {
-		match := reCPUUsage.FindString(output)
-		match = strings.TrimSpace(match)
-		fields := strings.Fields(match)
-		spew.Dump(fields)
+	type stat struct {
+		usage float64
+		total float64
+	}
+	// Parse the usage deltas out form the stats output.
+	stats := map[string][]stat{}
+	for i, output := range outputs {
+		// Returns a single cpu core measurement
+		matches := reCPUUsage.FindAllStringSubmatch(output, -1)
+		for _, submatch := range matches {
+			match := strings.TrimSpace(submatch[0])
+			var cpu string
+			if len(submatch) > 1 {
+				cpu = strings.TrimSpace(submatch[1])
+			}
+			// Fetch the relevant values, convert them to floats.
+			fields := strings.Fields(match)
+			user, err := strconv.ParseFloat(fields[1], 64)
+			if err != nil {
+				return nil, err
+			}
+			system, err := strconv.ParseFloat(fields[3], 64)
+			if err != nil {
+				return nil, err
+			}
+			idle, err := strconv.ParseFloat(fields[4], 64)
+			if err != nil {
+				return nil, err
+			}
+			// Calculate the effective usage as well as the available total.
+			if stats[cpu] == nil {
+				stats[cpu] = make([]stat, 2)
+			}
+			stats[cpu][i] = stat{
+				usage: user + system,
+				total: user + system + idle,
+			}
+		}
+	}
+	// Calculate the percentage values per core.
+	for cpu, value := range stats {
+		u := value[1].usage - value[0].usage
+		t := value[1].total - value[0].total
+		if t > 0 {
+			percent := roundToTwoDecimals(u * 100 / t)
+			if cpu == "" {
+				p.State = percent
+			} else {
+				p.Attributes[fmt.Sprintf("core_%s", cpu)] = percent
+			}
+		}
 	}
 	return p, nil
 }

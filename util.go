@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"math/rand"
 	"os"
 	"strings"
@@ -57,3 +58,6 @@ func fileExists(path string) (bool, error) {
 	return false, err
 }
 
+func roundToTwoDecimals(in float64) float64 {
+	return math.Floor(in*100) / 100
+}
