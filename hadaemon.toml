@@ -29,14 +29,15 @@ enabled = true
 name = "Power"
 meta = { battery = "BAT0" }
 
-#[sensor.powered_on]
-#enabled = true
-#name = "Powered On"
+[sensor.companion_running]
+enabled = true
+name = "Companion Is Running"
 
-#[sensor.online]
-#enabled = true
-#name = "Is Online"
-#meta = { host = "google.com" }
+[sensor.online_check]
+enabled = true
+name = "Is Online"
+# mode is http or ping
+meta = { target = "https://google.com", mode = "http" }
 
 [sensor.load_avg]
 enabled = true

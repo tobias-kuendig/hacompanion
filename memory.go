@@ -30,17 +30,19 @@ func (m Memory) process(output string) (*payload, error) {
 	matches := reMemory.FindAllStringSubmatch(output, -1)
 	for _, match := range matches {
 		var err error
-		var value int
+		var kb int
 		if len(match) != 3 {
 			continue
 		}
-		value, err = strconv.Atoi(strings.TrimSpace(match[2]))
+		kb, err = strconv.Atoi(strings.TrimSpace(match[2]))
 		if err != nil {
 			continue
 		}
+		// convert kb to MB
+		mb := roundToTwoDecimals(float64(kb) / 1024)
 		switch strings.TrimSpace(match[1]) {
 		case "MemFree":
-			p.State = value
+			p.State = mb
 		case "MemAvailable":
 			fallthrough
 		case "MemTotal":
@@ -48,7 +50,7 @@ func (m Memory) process(output string) (*payload, error) {
 		case "SwapFree":
 			fallthrough
 		case "SwapTotal":
-			p.Attributes[ToSnakeCase(match[1])] = value
+			p.Attributes[ToSnakeCase(match[1])] = mb
 		}
 	}
 	if p.State == "" {

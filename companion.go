@@ -51,6 +51,9 @@ func (c *Companion) UpdateSensorData(ctx context.Context) {
 	// Build one request to send all updated values to Home Assistant.
 	var data []UpdateSensorDataRequest
 	for _, output := range outputs.data {
+		if output.payload == nil {
+			continue
+		}
 		data = append(data, UpdateSensorDataRequest{
 			Type:       "sensor",
 			State:      output.payload.State,
@@ -64,4 +67,41 @@ func (c *Companion) UpdateSensorData(ctx context.Context) {
 	if err != nil {
 		log.Printf("failed to update sensor data: %s", err)
 	}
+}
+
+// RunBackgroundProcesses starts all background processes.
+func (c *Companion) RunBackgroundProcesses(ctx context.Context, wg *sync.WaitGroup) {
+	wg.Add(1)
+	defer wg.Done()
+
+	var processWg sync.WaitGroup
+
+	go c.UpdateCompanionRunningState(ctx, &processWg)
+
+	processWg.Wait()
+}
+
+// UpdateCompanionRunningState updates the companion running state.
+func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.WaitGroup) {
+	wg.Add(1)
+
+	update := func(state bool) {
+		err := c.api.UpdateSensorData(ctx, []UpdateSensorDataRequest{{
+			State:    state,
+			Type:     "sensor",
+			Icon:     "mdi:heart-pulse",
+			UniqueId: "companion_running",
+		}})
+		if err != nil {
+			log.Printf("failed to update companion_running state: %s", err)
+		}
+	}
+
+	update(true)
+	defer func() {
+		update(false)
+		wg.Done()
+	}()
+
+	<-ctx.Done()
 }

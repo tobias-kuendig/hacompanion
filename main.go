@@ -3,13 +3,16 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -29,15 +32,37 @@ func main() {
 	}
 	// Get some randomness going.
 	rand.Seed(time.Now().UnixNano())
+	// Handle shutdowns gracefully.
+	sigs := make(chan os.Signal, 1)
+	done := make(chan error, 1)
+
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Cancel the context once a shutdown signal was received.
+	go func() {
+		<- sigs
+		log.Println("SIG RECEIVED")
+		cancel()
+	}()
+
 	// Start the main process.
-	ctx := context.Background()
-	api := NewAPI(config.Host, config.Token)
-	if err := run(ctx, config, api); err != nil {
+	go func(ctx context.Context) {
+		api := NewAPI(config.Host, config.Token)
+		err := run(ctx, config, api)
+		log.Printf("ERR RECEIVED: %s\n", err)
+		done <- err
+	}(ctx)
+
+	// Wait for the error to return.
+	if err := <-done; err != nil {
 		log.Fatalf("exited with error: %s", err)
 	}
+	log.Println("DONE")
 }
 
-func run (ctx context.Context, config Config, api *API) error {
+func run(ctx context.Context, config Config, api *API) error {
 	// Make sure the device is registered in Home Assistant.
 	registration, err := getRegistration(ctx, api, config)
 	if err != nil {
@@ -62,17 +87,34 @@ func run (ctx context.Context, config Config, api *API) error {
 	// The Companion gathers sensor data and forwards it to Home Assistant.
 	companion := NewCompanion(api, sensors)
 
+	// Start the background processes.
+	var bgProcesses sync.WaitGroup
+	go companion.RunBackgroundProcesses(ctx, &bgProcesses)
+
 	// Run the first update immediately.
 	companion.UpdateSensorData(ctx)
 
 	// Keep updating the sensor data in a regular interval.
 	t := time.NewTicker(10 * time.Second)
+
+	// Done chan signals, when everything is done.
+	done := make(chan struct{})
+	go func() {
+		bgProcesses.Wait()
+		done <- struct{}{}
+	}()
+
 	for {
 		select {
-		case <- t.C:
+		case <-t.C:
 			companion.UpdateSensorData(ctx)
-		case <- ctx.Done():
-			return nil
+		case <-ctx.Done():
+			select {
+			case <-done:
+				return nil
+			case <-time.After(5 * time.Second):
+				return errors.New("failed to shut down background processes")
+			}
 		}
 	}
 }
@@ -99,9 +141,9 @@ var sensorDefinitions = map[string]func(m Meta) sensorDefinition{
 	},
 	"cpu_usage": func(m Meta) sensorDefinition {
 		return sensorDefinition{
-			runner:      func(m Meta) runner { return NewCPUUsage() },
-			icon:        "mdi:gauge",
-			unit:        "%",
+			runner: func(m Meta) runner { return NewCPUUsage() },
+			icon:   "mdi:gauge",
+			unit:   "%",
 		}
 	},
 	"memory": func(m Meta) sensorDefinition {
@@ -143,6 +185,18 @@ var sensorDefinitions = map[string]func(m Meta) sensorDefinition{
 			runner: func(Meta) runner { return NewAudioVolume() },
 			icon:   "mdi:volume-high",
 			unit:   "%",
+		}
+	},
+	"online_check": func(m Meta) sensorDefinition {
+		return sensorDefinition{
+			runner: func(m Meta) runner { return NewOnlineCheck(m) },
+			icon:   "mdi:shield-check-outline",
+		}
+	},
+	"companion_running": func(m Meta) sensorDefinition {
+		return sensorDefinition{
+			runner: func(Meta) runner { return NullRunner{} },
+			icon:   "mdi:heart-pulse",
 		}
 	},
 }
@@ -286,7 +340,7 @@ func (s Sensor) update(ctx context.Context, wg *sync.WaitGroup, outputs *Outputs
 		log.Printf("failed to run sensor %s: %s", s, err)
 		return
 	}
-	log.Printf("received payload: %+v", value)
+	log.Printf("received payload for %s: %+v", s.uniqueID, value)
 	outputs.Add(Output{sensor: s, payload: value})
 }
 
@@ -318,3 +372,7 @@ func respondSuccess(w http.ResponseWriter) {
 		}
 	`))
 }
+
+type NullRunner struct{}
+
+func (n NullRunner) run(ctx context.Context) (*payload, error) { return nil, nil }
