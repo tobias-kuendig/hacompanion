@@ -30,6 +30,9 @@ You can download a compiled binary [from the releases page](https://github.com/t
 
 Just download the `_binary` file for your architecture and copy it to `~/.local/bin/hacompanion` (or any other path on your system).
 
+You can now start the companion with the `hacompanion` command. But before doing so, you have to set up 
+the configuration:
+
 ## Getting started
 
 1. Make sure you have the [Mobile App integration](https://www.home-assistant.io/integrations/mobile_app/) enabled in Home Assistant (it is on by default).
