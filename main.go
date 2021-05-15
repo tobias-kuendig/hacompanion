@@ -122,7 +122,7 @@ func (k *Kernel) Run(appCtx context.Context) error {
 	}
 
 	// Start the notifications server.
-	k.notifications = companion.NewNotificationServer(registration)
+	k.notifications = companion.NewNotificationServer(registration, k.config.Notifications.Listen)
 	go k.notifications.Listen(ctx)
 
 	// The Companion gathers sensor data and forwards it to Home Assistant.
@@ -137,7 +137,7 @@ func (k *Kernel) Run(appCtx context.Context) error {
 
 	// Keep updating the sensor data in a regular interval until
 	// the application context gets cancelled.
-	t := time.NewTicker(k.config.CompanionConfig.UpdateInterval.Duration)
+	t := time.NewTicker(k.config.Companion.UpdateInterval.Duration)
 
 	for {
 		select {
@@ -205,11 +205,11 @@ func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
 func (k *Kernel) getRegistration(ctx context.Context) (api.Registration, error) {
 	var registration api.Registration
 	var err error
-	_, err = os.Stat(k.config.CompanionConfig.RegistrationFile.Path)
+	_, err = os.Stat(k.config.Companion.RegistrationFile.Path)
 	// If there is a registration file available, use it.
 	if err == nil {
 		var b []byte
-		b, err = ioutil.ReadFile(k.config.CompanionConfig.RegistrationFile.Path)
+		b, err = ioutil.ReadFile(k.config.Companion.RegistrationFile.Path)
 		if err != nil {
 			return registration, err
 		}
@@ -236,7 +236,7 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 		SupportsEncryption: false,
 		AppData: api.AppData{
 			PushToken: token,
-			PushURL:   k.config.CompanionConfig.NotificationServer,
+			PushURL:   k.config.Notifications.PushURL,
 		},
 	})
 	if err != nil {
@@ -248,7 +248,7 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	if err != nil {
 		return registration, err
 	}
-	err = ioutil.WriteFile(k.config.CompanionConfig.RegistrationFile.Path, j, 0600)
+	err = ioutil.WriteFile(k.config.Companion.RegistrationFile.Path, j, 0600)
 	if err != nil {
 		return registration, err
 	}

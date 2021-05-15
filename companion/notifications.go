@@ -44,11 +44,11 @@ type NotificationServer struct {
 	Server       *http.Server
 }
 
-func NewNotificationServer(registration api.Registration) *NotificationServer {
+func NewNotificationServer(registration api.Registration, address string) *NotificationServer {
 	s := &NotificationServer{
 		registration: registration,
 		mux:          http.NewServeMux(),
-		address:      ":8080",
+		address:      address,
 	}
 	s.Server = &http.Server{
 		Addr:    s.address,
@@ -58,7 +58,7 @@ func NewNotificationServer(registration api.Registration) *NotificationServer {
 }
 
 func (s NotificationServer) Listen(ctx context.Context) {
-	s.mux.HandleFunc("/notification", func(w http.ResponseWriter, r *http.Request) {
+	s.mux.HandleFunc("/notifications", func(w http.ResponseWriter, r *http.Request) {
 		var notification Notification
 		var req api.PushNotificationRequest
 		w.Header().Set("Content-Type", "application/json")

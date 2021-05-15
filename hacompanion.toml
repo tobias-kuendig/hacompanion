@@ -7,15 +7,18 @@ token = "eyJ0eXAiOi..."
 host = "http://<your-home-assistant-ip>:8123"
 
 [companion]
-# The URL where the Notification server on your machine will listen.
-# Make sure this contains *your* local IP.
-# You can leave the Port and Path section of the URL as is.
-notification_server = "http://<your-ip-here>:8080/notifications"
 # New sensor values are sent to Home Assistant in this interval.
 update_interval = "15s"
 # The location, where all registration information for Home Assistant will be stored on your machine.
 registration_file = "~/.config/hacompanion-registration.json"
 
+[notifications]
+# The IP and Port where the Notification server on your machine will listen.
+# By default listens on port 8080 on all interfaces.
+listen = ":8080"
+# Where Home Assistant should send notifications to. Make sure to insert your
+# local IP address here. Also adjust the port if you did change it in the setting above.
+push_url = "http://<your-local-ip>:8080/notifications"
 
 ##
 ## Below are all available senors. Enable/Disable them as needed.
@@ -58,12 +61,12 @@ enabled = true
 name = "Power"
 meta = { battery = "BAT0" }
 
-# Report if the companion process is running on this machine. 
+# Report if the companion process is running on this machine.
 [sensor.companion_running]
 enabled = true
 name = "Companion Is Running"
 
-# Report if this machine has connection to a remote host. 
+# Report if this machine has connection to a remote host.
 # You can configure which host to ping in the meta section.
 [sensor.online_check]
 enabled = true

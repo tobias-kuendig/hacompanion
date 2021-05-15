@@ -2,12 +2,10 @@ package companion
 
 import (
 	"context"
-	"log"
-	"sync"
-	"time"
-
 	"hacompanion/api"
 	"hacompanion/entity"
+	"log"
+	"sync"
 )
 
 type Companion struct {
@@ -84,7 +82,6 @@ func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.Wa
 	update(true)
 	defer func() {
 		update(false)
-		time.Sleep(5 * time.Second)
 		wg.Done()
 	}()
 
