@@ -25,7 +25,7 @@ import (
 )
 
 // Version contains the binary's release version.
-var Version = "1.0"
+var Version = "1.0.0"
 
 // Kernel holds all of the application's dependencies.
 type Kernel struct {
