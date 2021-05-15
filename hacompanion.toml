@@ -7,9 +7,10 @@ device_name = "Your Desktop"
 host = "http://<your-home-assistant-ip>:8123"
 
 [companion]
-# New sensor values are sent to Home Assistant in this interval.
+# New sensor values are sent to Home Assistant at this interval.
 update_interval = "15s"
 # The location, where all registration information for Home Assistant will be stored on your machine.
+# You do not need to change this.
 registration_file = "~/.config/hacompanion-registration.json"
 
 [notifications]
