@@ -37,12 +37,16 @@ type Kernel struct {
 }
 
 func main() {
-	var configFile string
-	flag.StringVar(&configFile, "config", "companion.toml", "Path to the config file")
+	var configFlag string
+	flag.StringVar(&configFlag, "config", "~/.config/hacompanion.toml", "Path to the config file")
 	flag.Parse()
 
-	if exists, _ := util.FileExists(configFile); !exists {
-		log.Fatalf("could not load config file %s", configFile)
+	configFile, err := homePathFromString(configFlag)
+	if err != nil {
+		log.Fatalf("failed to parse config flag %s: %s", configFlag, err)
+	}
+	if exists, _ := util.FileExists(configFile.Path); !exists {
+		log.Fatalf("could not load config file %s", configFile.Path)
 	}
 
 	// Get some randomness going.
@@ -50,7 +54,7 @@ func main() {
 
 	// Try to parse the config file.
 	var config Config
-	b, err := ioutil.ReadFile(configFile)
+	b, err := ioutil.ReadFile(configFile.Path)
 	if err != nil {
 		log.Fatalf("failed to read config file: %s", err)
 	}
@@ -270,6 +274,12 @@ func (d *duration) UnmarshalText(text []byte) error {
 // homePath enables support for ~/home/paths.
 type homePath struct {
 	Path string
+}
+
+func homePathFromString(in string) (*homePath, error) {
+	h := &homePath{}
+	err := h.UnmarshalText([]byte(in))
+	return h, err
 }
 
 func (h *homePath) UnmarshalText(text []byte) error {

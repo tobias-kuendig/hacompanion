@@ -1,0 +1,95 @@
+[homeassistant]
+# The display name of your device in Home Assistant
+device_name = "Your Desktop"
+# Generate the token on the /profile page in Home Assistant
+token = "eyJ0eXAiOi..."
+# Enter the full URL of your Home Assistant instance.
+host = "http://<your-home-assistant-ip>:8123"
+
+[companion]
+# The URL where the Notification server on your machine will listen.
+# Make sure this contains *your* local IP.
+# You can leave the Port and Path section of the URL as is.
+notification_server = "http://<your-ip-here>:8080/notifications"
+# New sensor values are sent to Home Assistant in this interval.
+update_interval = "15s"
+# The location, where all registration information for Home Assistant will be stored on your machine.
+registration_file = "~/.config/hacompanion-registration.json"
+
+
+##
+## Below are all available senors. Enable/Disable them as needed.
+##
+
+# Report the number of processes that are currently accessing your webcam.
+# This will send the number as reported by `lsmod | grep uvcvideo`.
+[sensor.webcam]
+enabled = true
+name = "Webcam Process Count"
+
+# Report the CPU temperature of all cores.
+# Note: Requires `lm-sensors` package to be installed locally.
+[sensor.cpu_temp]
+enabled = true
+name = "CPU Temperature"
+meta = { celsius = true }
+
+# Report the CPU usage of all cores.
+[sensor.cpu_usage]
+enabled = true
+name = "CPU Usage"
+
+# Report the current system uptime since last boot.
+[sensor.uptime]
+enabled = true
+name = "Last Boot"
+
+# Report the current memory/swap usage.
+[sensor.memory]
+enabled = true
+name = "Memory"
+
+# Report the current battery charge.
+# In case of multiple batteries, you can set which battery to monitor
+# in the meta section. To see available batteries run
+# `ls /sys/class/power_supply/`
+[sensor.power]
+enabled = true
+name = "Power"
+meta = { battery = "BAT0" }
+
+# Report if the companion process is running on this machine. 
+[sensor.companion_running]
+enabled = true
+name = "Companion Is Running"
+
+# Report if this machine has connection to a remote host. 
+# You can configure which host to ping in the meta section.
+[sensor.online_check]
+enabled = true
+name = "Is Online"
+# Available modes are "http" and "ping".
+# meta = { target = "192.168.1.1", mode = "ping" }
+meta = { target = "https://google.com", mode = "http" }
+
+# Report the average system load in the last 1m, 5m and 15m.
+[sensor.load_avg]
+enabled = true
+name = "Load Avg"
+
+# Report the audio volume and mute state.
+[sensor.audio_volume]
+enabled = true
+name = "Audio Volume"
+
+# Run a custom script. See README for details on how to use this sensor.
+[sensor.script]
+enabled = false
+
+[sensor.script.meta]
+scripts = [
+    # "/path/to/your/script.sh",
+    # "/path/to/another/script.sh",
+]
+
+
