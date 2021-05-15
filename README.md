@@ -45,7 +45,7 @@ the configuration:
 1. If you plan to receive notifications from Home Assistant on your Desktop, change the `push_url` setting under `[notifications]` to point
    to your local IP address.
 1. Configure all sensors in the configuration file as you see fit.
-1. Run the companion by executing `./hacompanion` (use the `-config=/path/to/config` flag to pass the path to a custom configuration
+1. Run the companion by executing `hacompanion` (use the `-config=/path/to/config` flag to pass the path to a custom configuration
    file, `~/.config/hacompanion.toml` is used by default).
 1. You should now see your new sensors under `Settings -> Integrations -> Mobile App -> Your Device`.
 
