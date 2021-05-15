@@ -45,7 +45,7 @@ func (s Script) Run(ctx context.Context) (*entity.Payload, error) {
 		// Other lines are attributes.
 		parts := strings.Split(line, ":")
 		if len(parts) < 2 {
-			log.Printf("ignoring custom script line with fewer than two parts: %s\n", line)
+			log.Printf("ignoring custom script line with less than two parts: %s\n", line)
 			continue
 		}
 		p.Attributes[strings.TrimSpace(parts[0])] = strings.TrimSpace(strings.Join(parts[1:], ":"))
