@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"hadaemon/entity"
+	"hacompanion/entity"
 )
 
 type WebCam struct{}

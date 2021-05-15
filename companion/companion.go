@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"hadaemon/api"
-	"hadaemon/entity"
+	"hacompanion/api"
+	"hacompanion/entity"
 )
 
 type Companion struct {

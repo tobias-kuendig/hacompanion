@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"time"
 
-	"hadaemon/entity"
+	"hacompanion/entity"
 )
 
 type OnlineCheck struct {

@@ -8,8 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"hadaemon/entity"
-	"hadaemon/util"
+	"hacompanion/entity"
+	"hacompanion/util"
 )
 
 type Power struct {

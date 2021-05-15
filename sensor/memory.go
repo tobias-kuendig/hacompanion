@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"hadaemon/entity"
-	"hadaemon/util"
+	"hacompanion/entity"
+	"hacompanion/util"
 )
 
 var reMemory = regexp.MustCompile(`(?mi)^\s?(?P<name>[^:]+):\s+(?P<value>\d+)`)

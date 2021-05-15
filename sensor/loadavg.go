@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"hadaemon/entity"
-	"hadaemon/util"
+	"hacompanion/entity"
+	"hacompanion/util"
 )
 
 type LoadAVG struct{}

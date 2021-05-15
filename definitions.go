@@ -1,8 +1,8 @@
 package main
 
 import (
-	"hadaemon/entity"
-	"hadaemon/sensor"
+	"hacompanion/entity"
+	"hacompanion/sensor"
 )
 
 // sensorDefinitions is used to map the configuration to internal types.

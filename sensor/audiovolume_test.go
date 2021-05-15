@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"hadaemon/entity"
+	"hacompanion/entity"
 )
 
 func TestAudioVolume(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"regexp"
 
-	"hadaemon/entity"
+	"hacompanion/entity"
 )
 
 var reAudioVolume = regexp.MustCompile(`(?m)Playback \d+ \[(?P<volume>\d{1,3})%\]\s?(?:\[.+\])?\s?\[(?P<state>on|off)\]`)

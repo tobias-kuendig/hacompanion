@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"hadaemon/entity"
-	"hadaemon/util"
+	"hacompanion/entity"
+	"hacompanion/util"
 )
 
 var (

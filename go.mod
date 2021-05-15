@@ -1,4 +1,4 @@
-module hadaemon
+module hacompanion
 
 go 1.16
 

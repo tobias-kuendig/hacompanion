@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"hadaemon/entity"
+	"hacompanion/entity"
 )
 
 type Uptime struct{}

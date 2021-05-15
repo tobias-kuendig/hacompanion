@@ -18,10 +18,10 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"hadaemon/api"
-	"hadaemon/companion"
-	"hadaemon/entity"
-	"hadaemon/util"
+	"hacompanion/api"
+	"hacompanion/companion"
+	"hacompanion/entity"
+	"hacompanion/util"
 )
 
 // Version contains the binary's release version.
@@ -100,6 +100,7 @@ func main() {
 
 // Run runs the application.
 func (k *Kernel) Run(appCtx context.Context) error {
+	log.Printf("Starting companion version %s", Version)
 	// Create a global application context that is later used for proper shutdowns.
 	ctx, cancel := context.WithCancel(appCtx)
 	k.ctxCancel = cancel

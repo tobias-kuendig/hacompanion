@@ -1,0 +1,32 @@
+project_name: hacompanion
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X main.Version={{.Version}}
+    goos:
+      - linux
+#      - windows
+#      - darwin
+nfpms:
+  - package_name: hacompanion
+    formats:
+      - deb
+      - rpm
+    license: MIT
+    dependencies:
+      - lm-sensors
+      - iputils-ping
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'

@@ -8,8 +8,8 @@ import (
 	"os/exec"
 	"strconv"
 
-	"hadaemon/api"
-	"hadaemon/util"
+	"hacompanion/api"
+	"hacompanion/util"
 )
 
 // Notification is used to send notifications using native tools.
