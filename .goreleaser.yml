@@ -24,7 +24,7 @@ nfpms:
       - iputils-ping
       - libnotify-bin
 archives:
-  format: binary
+  - format: binary
 checksum:
   name_template: 'checksums.txt'
 snapshot:
