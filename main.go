@@ -36,22 +36,14 @@ type Kernel struct {
 	bgProcesses   *sync.WaitGroup
 }
 
-// Config contains all values from the configuration file.
-type Config struct {
-	DeviceName         string                         `toml:"device_name"`
-	Prefix             string                         `toml:"prefix"`
-	Token              string                         `toml:"token"`
-	Host               string                         `toml:"host"`
-	Sensors            map[string]entity.SensorConfig `toml:"sensor"`
-	UpdateInterval     duration                       `toml:"update_interval"`
-	NotificationServer string                         `toml:"notification_server"`
-	RegistrationFile   homePath                       `toml:"registration_file"`
-}
-
 func main() {
 	var configFile string
 	flag.StringVar(&configFile, "config", "companion.toml", "Path to the config file")
 	flag.Parse()
+
+	if exists, _ := util.FileExists(configFile); !exists {
+		log.Fatalf("could not load config file %s", configFile)
+	}
 
 	// Get some randomness going.
 	rand.Seed(time.Now().UnixNano())
@@ -69,7 +61,7 @@ func main() {
 	// Build the application kernel.
 	k := Kernel{
 		config: &config,
-		api:    api.NewAPI(config.Host, config.Token),
+		api:    api.NewAPI(config.HomeAssistant.Host, config.HomeAssistant.Token),
 	}
 
 	// Start the main process.
@@ -88,11 +80,11 @@ func main() {
 	<-stop
 
 	// Give the application a few seconds to shut down.
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Second)
 	defer cancel()
 
 	if err = k.Shutdown(ctx); err != nil {
-		log.Fatalf("application shutdown error: %v\n", err)
+		log.Fatalf("application shutdown error: %s\n", err)
 	} else {
 		log.Println("application stopped")
 	}
@@ -141,7 +133,7 @@ func (k *Kernel) Run(appCtx context.Context) error {
 
 	// Keep updating the sensor data in a regular interval until
 	// the application context gets cancelled.
-	t := time.NewTicker(k.config.UpdateInterval.Duration)
+	t := time.NewTicker(k.config.CompanionConfig.UpdateInterval.Duration)
 
 	for {
 		select {
@@ -164,17 +156,17 @@ func (k *Kernel) Shutdown(ctx context.Context) error {
 		close(done)
 	}()
 
+	// Stop the notification server.
+	if err := k.notifications.Server.Shutdown(context.Background()); err != nil {
+		return fmt.Errorf("server shutdown error: %w", err)
+	}
+
 	// Wait for either everything to shut down properly or the the timeout of the context to exceed.
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-done:
 		break
-	}
-
-	// Stop the notification server.
-	if err := k.notifications.Server.Shutdown(ctx); err != nil {
-		return fmt.Errorf("server shutdown error: %w", err)
 	}
 
 	return nil
@@ -209,11 +201,11 @@ func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
 func (k *Kernel) getRegistration(ctx context.Context) (api.Registration, error) {
 	var registration api.Registration
 	var err error
-	_, err = os.Stat(k.config.RegistrationFile.Path)
+	_, err = os.Stat(k.config.CompanionConfig.RegistrationFile.Path)
 	// If there is a registration file available, use it.
 	if err == nil {
 		var b []byte
-		b, err = ioutil.ReadFile(k.config.RegistrationFile.Path)
+		b, err = ioutil.ReadFile(k.config.CompanionConfig.RegistrationFile.Path)
 		if err != nil {
 			return registration, err
 		}
@@ -236,11 +228,11 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 		AppID:              "homeassistant-desktop-companion",
 		AppName:            "Home Assistant Desktop Companion",
 		AppVersion:         Version,
-		DeviceName:         k.config.DeviceName,
+		DeviceName:         k.config.HomeAssistant.DeviceName,
 		SupportsEncryption: false,
 		AppData: api.AppData{
 			PushToken: token,
-			PushURL:   k.config.NotificationServer,
+			PushURL:   k.config.CompanionConfig.NotificationServer,
 		},
 	})
 	if err != nil {
@@ -252,7 +244,7 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	if err != nil {
 		return registration, err
 	}
-	err = ioutil.WriteFile(k.config.RegistrationFile.Path, j, 0600)
+	err = ioutil.WriteFile(k.config.CompanionConfig.RegistrationFile.Path, j, 0600)
 	if err != nil {
 		return registration, err
 	}

@@ -3,6 +3,7 @@ package companion
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"os/exec"
@@ -79,8 +80,7 @@ func (s NotificationServer) Listen(ctx context.Context) {
 		util.RespondSuccess(w)
 	})
 
-	err := s.Server.ListenAndServe()
-	if err != nil {
-		log.Fatal(err)
+	if err := s.Server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+		log.Fatalf("failed to start notifications server: %s", err)
 	}
 }
