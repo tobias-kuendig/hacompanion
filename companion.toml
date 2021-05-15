@@ -1,6 +1,9 @@
 device_name = "Dell Desktop"
 token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIzZGQyNGFhMWZiOWY0NjhjYWU2YjBmMDYwMGVkOGU1ZiIsImlhdCI6MTYyMDIzODA3MSwiZXhwIjoxOTM1NTk4MDcxfQ.acv3qSoz9IdLVN6oJofTafMPovqGri-L1Efrk3Q255w"
 host = "http://192.168.1.77:8123"
+notification_server = "http://192.168.1.2:8080/notifications"
+update_interval = "15s"
+registration_file = "~/.config/ha-registration.json"
 
 [sensor.webcam]
 enabled = true

@@ -1,4 +1,4 @@
-package main
+package sensor
 
 import (
 	"context"
@@ -6,6 +6,9 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+
+	"hadaemon/entity"
+	"hadaemon/util"
 )
 
 type LoadAVG struct{}
@@ -14,12 +17,12 @@ func NewLoadAVG() *LoadAVG {
 	return &LoadAVG{}
 }
 
-func (w LoadAVG) run(ctx context.Context) (*payload, error) {
+func (w LoadAVG) Run(ctx context.Context) (*entity.Payload, error) {
 	b, err := ioutil.ReadFile("/proc/loadavg")
 	if err != nil {
 		return nil, err
 	}
-	p := NewPayload()
+	p := entity.NewPayload()
 	parts := strings.Fields(string(b))
 	if len(parts) < 3 {
 		return nil, fmt.Errorf("expected at least 3 values from /proc/loadavg, got only %d: %s", len(parts), string(b))
@@ -31,7 +34,7 @@ func (w LoadAVG) run(ctx context.Context) (*payload, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse loadavg %s: %w", load, err)
 			}
-			float = roundToTwoDecimals(float)
+			float = util.RoundToTwoDecimals(float)
 		}
 		switch index {
 		case 0:

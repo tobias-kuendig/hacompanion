@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"math"
@@ -27,7 +27,7 @@ func ToSnakeCase(in string) string {
 }
 
 func RandomString(n int) string {
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
 	s := make([]rune, n)
 	for i := range s {
@@ -36,7 +36,7 @@ func RandomString(n int) string {
 	return string(s)
 }
 
-func stringToOnOff(in string) string {
+func StringToOnOff(in string) string {
 	in = strings.TrimSpace(in)
 	if in == "1" {
 		return "on"
@@ -47,7 +47,7 @@ func stringToOnOff(in string) string {
 	return ""
 }
 
-func fileExists(path string) (bool, error) {
+func FileExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
 		return true, nil
@@ -58,6 +58,6 @@ func fileExists(path string) (bool, error) {
 	return false, err
 }
 
-func roundToTwoDecimals(in float64) float64 {
+func RoundToTwoDecimals(in float64) float64 {
 	return math.Floor(in*100) / 100
 }

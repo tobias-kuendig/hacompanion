@@ -1,4 +1,4 @@
-package main
+package sensor
 
 import (
 	"bytes"
@@ -10,24 +10,29 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"hadaemon/entity"
+	"hadaemon/util"
 )
 
-var reCPUTemp = regexp.MustCompile(`(?m)(Package id|Core \d)[\s\d]*:\s+.?([\d\.]+)°`)
-var reCPUUsage = regexp.MustCompile(`(?m)^\s*cpu(\d+)?.*`)
+var (
+	reCPUTemp  = regexp.MustCompile(`(?m)(Package id|Core \d)[\s\d]*:\s+.?([\d\.]+)°`)
+	reCPUUsage = regexp.MustCompile(`(?m)^\s*cpu(\d+)?.*`)
+)
 
 type CPUTemp struct {
 	UseCelsius bool
 }
 
-func NewCPUTemp(m Meta) *CPUTemp {
+func NewCPUTemp(m entity.Meta) *CPUTemp {
 	c := &CPUTemp{}
-	if m.GetBool("celsius") == true {
+	if m.GetBool("celsius") {
 		c.UseCelsius = true
 	}
 	return c
 }
 
-func (c CPUTemp) run(ctx context.Context) (*payload, error) {
+func (c CPUTemp) Run(ctx context.Context) (*entity.Payload, error) {
 	var out bytes.Buffer
 	var args []string
 	if !c.UseCelsius {
@@ -42,8 +47,8 @@ func (c CPUTemp) run(ctx context.Context) (*payload, error) {
 	return c.process(out.String())
 }
 
-func (c CPUTemp) process(output string) (*payload, error) {
-	p := NewPayload()
+func (c CPUTemp) process(output string) (*entity.Payload, error) {
+	p := entity.NewPayload()
 	matches := reCPUTemp.FindAllStringSubmatch(output, -1)
 	for _, match := range matches {
 		if len(match) < 3 {
@@ -52,7 +57,7 @@ func (c CPUTemp) process(output string) (*payload, error) {
 		if strings.EqualFold(match[1], "Package id") {
 			p.State = match[2]
 		} else {
-			p.Attributes[ToSnakeCase(match[1])] = match[2]
+			p.Attributes[util.ToSnakeCase(match[1])] = match[2]
 		}
 	}
 	if p.State == "" {
@@ -67,7 +72,7 @@ func NewCPUUsage() *CPUUsage {
 	return &CPUUsage{}
 }
 
-func (c CPUUsage) run(ctx context.Context) (*payload, error) {
+func (c CPUUsage) Run(ctx context.Context) (*entity.Payload, error) {
 	var outputs []string
 	measurements := 2
 	for i := 0; i < measurements; i++ {
@@ -84,8 +89,8 @@ func (c CPUUsage) run(ctx context.Context) (*payload, error) {
 	return c.process(outputs)
 }
 
-func (c CPUUsage) process(outputs []string) (*payload, error) {
-	p := NewPayload()
+func (c CPUUsage) process(outputs []string) (*entity.Payload, error) {
+	p := entity.NewPayload()
 	type stat struct {
 		usage float64
 		total float64
@@ -130,7 +135,7 @@ func (c CPUUsage) process(outputs []string) (*payload, error) {
 		u := value[1].usage - value[0].usage
 		t := value[1].total - value[0].total
 		if t > 0 {
-			percent := roundToTwoDecimals(u * 100 / t)
+			percent := util.RoundToTwoDecimals(u * 100 / t)
 			if cpu == "" {
 				p.State = percent
 			} else {

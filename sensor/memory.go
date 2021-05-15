@@ -1,4 +1,4 @@
-package main
+package sensor
 
 import (
 	"context"
@@ -7,6 +7,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"hadaemon/entity"
+	"hadaemon/util"
 )
 
 var reMemory = regexp.MustCompile(`(?mi)^\s?(?P<name>[^:]+):\s+(?P<value>\d+)`)
@@ -17,7 +20,7 @@ func NewMemory() *Memory {
 	return &Memory{}
 }
 
-func (m Memory) run(ctx context.Context) (*payload, error) {
+func (m Memory) Run(ctx context.Context) (*entity.Payload, error) {
 	b, err := ioutil.ReadFile("/proc/meminfo")
 	if err != nil {
 		return nil, err
@@ -25,8 +28,8 @@ func (m Memory) run(ctx context.Context) (*payload, error) {
 	return m.process(string(b))
 }
 
-func (m Memory) process(output string) (*payload, error) {
-	p := NewPayload()
+func (m Memory) process(output string) (*entity.Payload, error) {
+	p := entity.NewPayload()
 	matches := reMemory.FindAllStringSubmatch(output, -1)
 	for _, match := range matches {
 		var err error
@@ -39,7 +42,7 @@ func (m Memory) process(output string) (*payload, error) {
 			continue
 		}
 		// convert kb to MB
-		mb := roundToTwoDecimals(float64(kb) / 1024)
+		mb := util.RoundToTwoDecimals(float64(kb) / 1024)
 		switch strings.TrimSpace(match[1]) {
 		case "MemFree":
 			p.State = mb
@@ -50,7 +53,7 @@ func (m Memory) process(output string) (*payload, error) {
 		case "SwapFree":
 			fallthrough
 		case "SwapTotal":
-			p.Attributes[ToSnakeCase(match[1])] = mb
+			p.Attributes[util.ToSnakeCase(match[1])] = mb
 		}
 	}
 	if p.State == "" {

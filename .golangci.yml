@@ -1,0 +1,6 @@
+run:
+  timeout: 1m
+
+linters:
+  disable:
+    - gomnd

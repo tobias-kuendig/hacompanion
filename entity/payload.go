@@ -1,12 +1,12 @@
-package main
+package entity
 
-type payload struct {
+type Payload struct {
 	State      interface{}            `json:"state,omitempty"`
 	Attributes map[string]interface{} `json:"attributes,omitempty"`
 }
 
-func NewPayload() *payload {
-	return &payload{
+func NewPayload() *Payload {
+	return &Payload{
 		Attributes: make(map[string]interface{}),
 	}
 }

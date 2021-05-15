@@ -1,16 +1,17 @@
-package main
+package api
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
 	"time"
+
+	"hadaemon/entity"
 )
 
 type RegisterDeviceRequest struct {
@@ -89,12 +90,12 @@ type PushNotificationData struct {
 
 func (api *API) URL(skipCloud bool) string {
 	var url string
-	if api.registration.CloudhookURL != "" && !skipCloud {
-		url = api.registration.CloudhookURL
-	} else if api.registration.RemoteUIURL != "" {
-		url = fmt.Sprintf("%s/api/webhook/%s", api.registration.RemoteUIURL, api.registration.WebhookID)
+	if api.Registration.CloudhookURL != "" && !skipCloud {
+		url = api.Registration.CloudhookURL
+	} else if api.Registration.RemoteUIURL != "" {
+		url = fmt.Sprintf("%s/api/webhook/%s", api.Registration.RemoteUIURL, api.Registration.WebhookID)
 	} else {
-		url = fmt.Sprintf("%s/api/webhook/%s", api.Host, api.registration.WebhookID)
+		url = fmt.Sprintf("%s/api/webhook/%s", api.Host, api.Registration.WebhookID)
 	}
 	return url
 }
@@ -111,7 +112,7 @@ type API struct {
 	Host         string
 	Token        string
 	client       http.Client
-	registration Registration
+	Registration Registration
 }
 
 func NewAPI(host, token string) *API {
@@ -139,7 +140,7 @@ func (api *API) sendRequest(ctx context.Context, url string, payload []byte) ([]
 		return nil, err
 	}
 	if resp.StatusCode >= 400 {
-		return nil, errors.New(fmt.Sprintf("received invalid status code %d (%s)", resp.StatusCode, body))
+		return nil, fmt.Errorf("received invalid status code %d (%s)", resp.StatusCode, body)
 	}
 	log.Printf("received %s", string(body))
 	return body, nil
@@ -201,18 +202,18 @@ func (api *API) UpdateSensorData(ctx context.Context, data []UpdateSensorDataReq
 }
 
 // RegisterSensors register's a slice of sensors in Home Assistant.
-func (api *API) RegisterSensors(ctx context.Context, sensors []Sensor) error {
+func (api *API) RegisterSensors(ctx context.Context, sensors []entity.Sensor) error {
 	for _, sensor := range sensors {
 		err := api.RegisterSensor(ctx, RegisterSensorRequest{
 			Type:              "sensor",
-			DeviceClass:       sensor.deviceClass,
-			Icon:              sensor.icon,
-			Name:              sensor.name,
-			UniqueId:          sensor.uniqueID,
-			UnitOfMeasurement: sensor.unit,
+			DeviceClass:       sensor.DeviceClass,
+			Icon:              sensor.Icon,
+			Name:              sensor.Name,
+			UniqueId:          sensor.UniqueID,
+			UnitOfMeasurement: sensor.Unit,
 		})
 		if err != nil {
-			return fmt.Errorf("failed to register sensor %s: %w", sensor.uniqueID, err)
+			return fmt.Errorf("failed to register sensor %s: %w", sensor.UniqueID, err)
 		}
 	}
 	return nil

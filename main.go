@@ -3,36 +3,62 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
-	"net/http"
 	"os"
 	"os/signal"
+	"os/user"
+	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"hadaemon/api"
+	"hadaemon/companion"
+	"hadaemon/entity"
+	"hadaemon/util"
 )
 
+// Version contains the binary's release version.
+var Version = "1.0"
+
+// Kernel holds all of the application's dependencies.
 type Kernel struct {
 	config        *Config
-	api           *API
-	notifications *NotificationServer
+	api           *api.API
+	notifications *companion.NotificationServer
 	ctxCancel     context.CancelFunc
 	bgProcesses   *sync.WaitGroup
 }
 
-var registrationFile = "registration.json"
+// Config contains all values from the configuration file.
+type Config struct {
+	DeviceName         string                         `toml:"device_name"`
+	Prefix             string                         `toml:"prefix"`
+	Token              string                         `toml:"token"`
+	Host               string                         `toml:"host"`
+	Sensors            map[string]entity.SensorConfig `toml:"sensor"`
+	UpdateInterval     duration                       `toml:"update_interval"`
+	NotificationServer string                         `toml:"notification_server"`
+	RegistrationFile   homePath                       `toml:"registration_file"`
+}
 
 func main() {
+	var configFile string
+	flag.StringVar(&configFile, "config", "companion.toml", "Path to the config file")
+	flag.Parse()
+
 	// Get some randomness going.
 	rand.Seed(time.Now().UnixNano())
+
 	// Try to parse the config file.
 	var config Config
-	b, err := ioutil.ReadFile("hadaemon.toml")
+	b, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		log.Fatalf("failed to read config file: %s", err)
 	}
@@ -40,39 +66,41 @@ func main() {
 		log.Fatalf("failed to parse config file: %s", err)
 	}
 
+	// Build the application kernel.
 	k := Kernel{
 		config: &config,
-		api:    NewAPI(config.Host, config.Token),
+		api:    api.NewAPI(config.Host, config.Token),
 	}
-
-	// Handle shutdowns gracefully.
-	stop := make(chan os.Signal, 1)
-
-	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	// Start the main process.
 	go func() {
-		err := k.Run(context.Background())
+		err = k.Run(context.Background())
 		if err != nil {
-			log.Fatalf("failed to stop application: %w", err)
+			log.Fatalf("failed to start application: %s", err)
 		}
 	}()
 
-	// Wait for the quit signal.
+	// Handle shutdowns gracefully.
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
+	// Wait for the shutdown signal.
 	<-stop
 
+	// Give the application a few seconds to shut down.
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := k.Shutdown(ctx); err != nil {
+	if err = k.Shutdown(ctx); err != nil {
 		log.Fatalf("application shutdown error: %v\n", err)
 	} else {
 		log.Println("application stopped")
 	}
 }
 
+// Run runs the application.
 func (k *Kernel) Run(appCtx context.Context) error {
-	// Create a global application context.
+	// Create a global application context that is later used for proper shutdowns.
 	ctx, cancel := context.WithCancel(appCtx)
 	k.ctxCancel = cancel
 
@@ -80,14 +108,14 @@ func (k *Kernel) Run(appCtx context.Context) error {
 	k.bgProcesses = &sync.WaitGroup{}
 
 	// Make sure the device is registered in Home Assistant.
-	registration, err := getRegistration(ctx, k.api, k.config)
+	registration, err := k.getRegistration(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get device registrationo: %w", err)
+		return fmt.Errorf("failed to get device registration: %w", err)
 	}
-	k.api.registration = registration
+	k.api.Registration = registration
 
 	// Parse all sensors out of the config file and register them in Home Assistant.
-	sensors, err := buildSensors(k.config)
+	sensors, err := k.buildSensors(k.config)
 	if err != nil {
 		return fmt.Errorf("failed to build sensors from config: %w", err)
 	}
@@ -97,150 +125,63 @@ func (k *Kernel) Run(appCtx context.Context) error {
 	}
 
 	// Start the notifications server.
-	k.notifications = NewNotificationServer(registration)
+	k.notifications = companion.NewNotificationServer(registration)
 	go k.notifications.Listen(ctx)
 
 	// The Companion gathers sensor data and forwards it to Home Assistant.
-	companion := NewCompanion(k.api, sensors)
+	c := companion.NewCompanion(k.api, sensors)
 
 	// Start the background processes.
-	go companion.RunBackgroundProcesses(ctx, k.bgProcesses)
+	k.bgProcesses.Add(1)
+	go c.RunBackgroundProcesses(ctx, k.bgProcesses)
 
 	// Run the first update immediately.
-	companion.UpdateSensorData(ctx)
+	c.UpdateSensorData(ctx)
 
-	// Keep updating the sensor data in a regular interval.
-	t := time.NewTicker(10 * time.Second)
+	// Keep updating the sensor data in a regular interval until
+	// the application context gets cancelled.
+	t := time.NewTicker(k.config.UpdateInterval.Duration)
 
 	for {
 		select {
 		case <-t.C:
-			companion.UpdateSensorData(ctx)
+			c.UpdateSensorData(ctx)
 		case <-ctx.Done():
 			return nil
 		}
 	}
 }
 
-// Shutdown shuts down the main routine.
+// Shutdown shuts down the main routine gracefully.
 func (k *Kernel) Shutdown(ctx context.Context) error {
-	// Cancel global context, then wait for all processes to quit.
+	// Cancel global context, then wait for all background processes to quit.
 	k.ctxCancel()
+
 	done := make(chan struct{})
 	go func() {
 		k.bgProcesses.Wait()
 		close(done)
 	}()
-	// Wait for either everything to shut down properly or the the timeout of the context to trigger.
+
+	// Wait for either everything to shut down properly or the the timeout of the context to exceed.
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-done:
 		break
 	}
-	if err := k.notifications.server.Shutdown(ctx); err != nil {
+
+	// Stop the notification server.
+	if err := k.notifications.Server.Shutdown(ctx); err != nil {
 		return fmt.Errorf("server shutdown error: %w", err)
 	}
+
 	return nil
 }
 
-type sensorDefinition struct {
-	runner      func(Meta) runner
-	deviceClass string
-	icon        string
-	unit        string
-}
-
-var sensorDefinitions = map[string]func(m Meta) sensorDefinition{
-	"cpu_temp": func(m Meta) sensorDefinition {
-		unit := "C"
-		if !m.GetBool("celsius") {
-			unit = "F"
-		}
-		return sensorDefinition{
-			runner:      func(m Meta) runner { return NewCPUTemp(m) },
-			deviceClass: "temperature",
-			icon:        "mdi:thermometer",
-			unit:        unit,
-		}
-	},
-	"cpu_usage": func(m Meta) sensorDefinition {
-		return sensorDefinition{
-			runner: func(m Meta) runner { return NewCPUUsage() },
-			icon:   "mdi:gauge",
-			unit:   "%",
-		}
-	},
-	"memory": func(m Meta) sensorDefinition {
-		return sensorDefinition{
-			runner: func(Meta) runner { return NewMemory() },
-			icon:   "mdi:memory",
-		}
-	},
-	"power": func(m Meta) sensorDefinition {
-		return sensorDefinition{
-			runner:      func(m Meta) runner { return NewPower(m) },
-			icon:        "mdi:battery",
-			deviceClass: "battery",
-			unit:        "%",
-		}
-	},
-	"uptime": func(m Meta) sensorDefinition {
-		return sensorDefinition{
-			runner:      func(Meta) runner { return NewUptime() },
-			icon:        "mdi:sort-clock-descending",
-			deviceClass: "timestamp",
-			unit:        "ISO8601",
-		}
-	},
-	"load_avg": func(m Meta) sensorDefinition {
-		return sensorDefinition{
-			runner: func(Meta) runner { return NewLoadAVG() },
-			icon:   "mdi:gauge",
-		}
-	},
-	"webcam": func(m Meta) sensorDefinition {
-		return sensorDefinition{
-			runner: func(Meta) runner { return NewWebCam() },
-			icon:   "mdi:webcam",
-		}
-	},
-	"audio_volume": func(m Meta) sensorDefinition {
-		return sensorDefinition{
-			runner: func(Meta) runner { return NewAudioVolume() },
-			icon:   "mdi:volume-high",
-			unit:   "%",
-		}
-	},
-	"online_check": func(m Meta) sensorDefinition {
-		return sensorDefinition{
-			runner: func(m Meta) runner { return NewOnlineCheck(m) },
-			icon:   "mdi:shield-check-outline",
-		}
-	},
-	"companion_running": func(m Meta) sensorDefinition {
-		return sensorDefinition{
-			runner: func(Meta) runner { return NullRunner{} },
-			icon:   "mdi:heart-pulse",
-		}
-	},
-}
-
-type Sensor struct {
-	runner      runner
-	deviceClass string
-	icon        string
-	name        string
-	uniqueID    string
-	unit        string
-}
-
-func (s Sensor) String() string {
-	return fmt.Sprintf("%s (%s)", s.name, s.uniqueID)
-}
-
-func buildSensors(config *Config) ([]Sensor, error) {
-	var sensors []Sensor
+// buildSensor returns a slice of concrete Sensor types based on the configuration.
+func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
+	var sensors []entity.Sensor
 	for key, sensorConfig := range config.Sensors {
 		if !sensorConfig.Enabled {
 			continue
@@ -250,26 +191,28 @@ func buildSensors(config *Config) ([]Sensor, error) {
 			return nil, fmt.Errorf("unknown sensor %s in config", key)
 		}
 		data := definition(sensorConfig.Meta)
-		sensors = append(sensors, Sensor{
-			name:        sensorConfig.Name,
-			uniqueID:    key,
-			runner:      data.runner(sensorConfig.Meta),
-			deviceClass: data.deviceClass,
-			icon:        data.icon,
-			unit:        data.unit,
+		sensors = append(sensors, entity.Sensor{
+			Name:        sensorConfig.Name,
+			UniqueID:    key,
+			Runner:      data.Runner(sensorConfig.Meta),
+			DeviceClass: data.DeviceClass,
+			Icon:        data.Icon,
+			Unit:        data.Unit,
 		})
 	}
 	return sensors, nil
 }
 
-func getRegistration(ctx context.Context, api *API, config *Config) (Registration, error) {
-	var registration Registration
+// getRegistration tries to read an existing Home Assistant device registration.
+// If it does not exist, it register a new device with Home Assistant.
+func (k *Kernel) getRegistration(ctx context.Context) (api.Registration, error) {
+	var registration api.Registration
 	var err error
-	_, err = os.Stat(registrationFile)
+	_, err = os.Stat(k.config.RegistrationFile.Path)
 	// If there is a registration file available, use it.
 	if err == nil {
 		var b []byte
-		b, err = ioutil.ReadFile(registrationFile)
+		b, err = ioutil.ReadFile(k.config.RegistrationFile.Path)
 		if err != nil {
 			return registration, err
 		}
@@ -280,22 +223,23 @@ func getRegistration(ctx context.Context, api *API, config *Config) (Registratio
 	if !os.IsNotExist(err) {
 		return registration, err
 	}
-	return registerDevice(ctx, api, config)
+	return k.registerDevice(ctx)
 }
 
-func registerDevice(ctx context.Context, api *API, config *Config) (Registration, error) {
-	id := RandomString(8)
-	token := RandomString(8)
-	registration, err := api.RegisterDevice(ctx, RegisterDeviceRequest{
+// registerDevices registers a new device with Home Assistant.
+func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
+	id := util.RandomString(8)
+	token := util.RandomString(8)
+	registration, err := k.api.RegisterDevice(ctx, api.RegisterDeviceRequest{
 		DeviceID:           id,
-		AppID:              "hadaemon",
-		AppName:            "Home Assistant Daemon",
-		AppVersion:         "1.0",
-		DeviceName:         config.DeviceName,
+		AppID:              "homeassistant-desktop-companion",
+		AppName:            "Home Assistant Desktop Companion",
+		AppVersion:         Version,
+		DeviceName:         k.config.DeviceName,
 		SupportsEncryption: false,
-		AppData: AppData{
+		AppData: api.AppData{
 			PushToken: token,
-			PushURL:   "http://192.168.1.2:8080/notification",
+			PushURL:   k.config.NotificationServer,
 		},
 	})
 	if err != nil {
@@ -307,97 +251,43 @@ func registerDevice(ctx context.Context, api *API, config *Config) (Registration
 	if err != nil {
 		return registration, err
 	}
-	err = ioutil.WriteFile(registrationFile, j, 0600)
+	err = ioutil.WriteFile(k.config.RegistrationFile.Path, j, 0600)
 	if err != nil {
 		return registration, err
 	}
 	return registration, err
 }
 
-type Config struct {
-	DeviceName string                  `toml:"device_name"`
-	Prefix     string                  `toml:"prefix"`
-	Token      string                  `toml:"token"`
-	Host       string                  `toml:"host"`
-	Sensors    map[string]SensorConfig `toml:"sensor"`
-}
-
-type SensorConfig struct {
-	Enabled bool
-	Name    string
-	Meta    map[string]interface{}
-}
-
-type runner interface {
-	run(ctx context.Context) (*payload, error)
-}
-
-type Output struct {
-	payload *payload
-	sensor  Sensor
-}
-
-type Meta map[string]interface{}
-
-func (m Meta) GetBool(key string) bool {
-	if v, ok := m[key]; ok {
-		if v == true {
-			return true
-		}
-		return false
-	}
-	return false
-}
-
-func (m Meta) GetString(key string) string {
-	if v, ok := m[key]; ok {
-		if value, isString := v.(string); isString {
-			return value
-		}
-	}
-	return ""
-}
-
-func (s Sensor) update(ctx context.Context, wg *sync.WaitGroup, outputs *Outputs) {
-	defer wg.Done()
-	value, err := s.runner.run(ctx)
-	if err != nil {
-		log.Printf("failed to run sensor %s: %s", s, err)
-		return
-	}
-	log.Printf("received payload for %s: %+v", s.uniqueID, value)
-	outputs.Add(Output{sensor: s, payload: value})
-}
-
-func respondError(w http.ResponseWriter, error string, status int) {
-	var resp struct {
-		Error string `json:"errorMessage"`
-	}
-	resp.Error = error
-	b, err := json.Marshal(resp)
-	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, string(b))))
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-	w.WriteHeader(status)
-	w.Write(b)
-}
-
-// Home Assistant errors without a rateLimits response.
-// There is no rate limiting implemented on our side so we return a dummy response.
-func respondSuccess(w http.ResponseWriter) {
-	w.Write([]byte(`
-		{
-			"rateLimits": {
-				"successful": 1,
-				"errors": 0,
-				"maximum": 150,
-				"resetsAt": "2019-04-08T00:00:00.000Z"
-			}
-		}
-	`))
-}
-
+// NullRunner is a Runner that does not do anything.
 type NullRunner struct{}
 
-func (n NullRunner) run(ctx context.Context) (*payload, error) { return nil, nil }
+func (n NullRunner) Run(ctx context.Context) (*entity.Payload, error) { return nil, nil }
+
+// duration is used to unmarshal text durations into a time.Duration.
+type duration struct {
+	time.Duration
+}
+
+func (d *duration) UnmarshalText(text []byte) error {
+	var err error
+	d.Duration, err = time.ParseDuration(string(text))
+	return err
+}
+
+// homePath enables support for ~/home/paths.
+type homePath struct {
+	Path string
+}
+
+func (h *homePath) UnmarshalText(text []byte) error {
+	h.Path = string(text)
+	if strings.HasPrefix(h.Path, "~/") {
+		usr, err := user.Current()
+		if err != nil {
+			return err
+		}
+		h.Path = filepath.Join(usr.HomeDir, string(text[2:]))
+		return nil
+	}
+	return nil
+}

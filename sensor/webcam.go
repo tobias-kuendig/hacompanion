@@ -1,4 +1,4 @@
-package main
+package sensor
 
 import (
 	"bufio"
@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+
+	"hadaemon/entity"
 )
 
 type WebCam struct{}
@@ -16,7 +18,7 @@ func NewWebCam() *WebCam {
 	return &WebCam{}
 }
 
-func (w WebCam) run(ctx context.Context) (*payload, error) {
+func (w WebCam) Run(ctx context.Context) (*entity.Payload, error) {
 	var err error
 	var out bytes.Buffer
 	cmd := exec.CommandContext(ctx, "lsmod")
@@ -41,7 +43,7 @@ func (w WebCam) run(ctx context.Context) (*payload, error) {
 	if procCount == "" {
 		return nil, errors.New("did no find uvcvideo in lsmod output, failed to determine webcam usage")
 	}
-	p := NewPayload()
+	p := entity.NewPayload()
 	p.State = procCount
 	return p, nil
 }

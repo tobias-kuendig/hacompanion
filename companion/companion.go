@@ -1,37 +1,22 @@
-package main
+package companion
 
 import (
 	"context"
 	"log"
 	"sync"
 	"time"
+
+	"hadaemon/api"
+	"hadaemon/entity"
 )
 
-type Outputs struct {
-	data []*Output
-	lock sync.Mutex
-}
-
-func NewOutputs() Outputs {
-	return Outputs{
-		lock: sync.Mutex{},
-		data: make([]*Output, 0),
-	}
-}
-
-func (o *Outputs) Add(output Output) {
-	o.lock.Lock()
-	defer o.lock.Unlock()
-	o.data = append(o.data, &output)
-}
-
 type Companion struct {
-	sensors []Sensor
-	api     *API
+	sensors []entity.Sensor
+	api     *api.API
 	wg      sync.WaitGroup
 }
 
-func NewCompanion(api *API, sensors []Sensor) *Companion {
+func NewCompanion(api *api.API, sensors []entity.Sensor) *Companion {
 	return &Companion{
 		api:     api,
 		sensors: sensors,
@@ -39,28 +24,28 @@ func NewCompanion(api *API, sensors []Sensor) *Companion {
 }
 
 func (c *Companion) UpdateSensorData(ctx context.Context) {
-	outputs := NewOutputs()
+	outputs := entity.NewOutputs()
 
 	// Fetch all sensor values in parallel.
 	for _, sensor := range c.sensors {
 		c.wg.Add(1)
-		go sensor.update(ctx, &c.wg, &outputs)
+		go sensor.Update(ctx, &c.wg, &outputs)
 	}
 
 	c.wg.Wait()
 
 	// Build one request to send all updated values to Home Assistant.
-	var data []UpdateSensorDataRequest
-	for _, output := range outputs.data {
-		if output.payload == nil {
+	var data []api.UpdateSensorDataRequest
+	for _, output := range outputs.Data {
+		if output.Payload == nil {
 			continue
 		}
-		data = append(data, UpdateSensorDataRequest{
+		data = append(data, api.UpdateSensorDataRequest{
 			Type:       "sensor",
-			State:      output.payload.State,
-			Attributes: output.payload.Attributes,
-			UniqueId:   output.sensor.uniqueID,
-			Icon:       output.sensor.icon,
+			State:      output.Payload.State,
+			Attributes: output.Payload.Attributes,
+			UniqueId:   output.Sensor.UniqueID,
+			Icon:       output.Sensor.Icon,
 		})
 	}
 
@@ -72,7 +57,6 @@ func (c *Companion) UpdateSensorData(ctx context.Context) {
 
 // RunBackgroundProcesses starts all background processes.
 func (c *Companion) RunBackgroundProcesses(ctx context.Context, wg *sync.WaitGroup) {
-	wg.Add(1)
 	defer wg.Done()
 
 	var processWg sync.WaitGroup
@@ -86,7 +70,7 @@ func (c *Companion) RunBackgroundProcesses(ctx context.Context, wg *sync.WaitGro
 // UpdateCompanionRunningState updates the companion running state.
 func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.WaitGroup) {
 	update := func(state bool) {
-		err := c.api.UpdateSensorData(context.Background(), []UpdateSensorDataRequest{{
+		err := c.api.UpdateSensorData(context.Background(), []api.UpdateSensorDataRequest{{
 			State:    state,
 			Type:     "sensor",
 			Icon:     "mdi:heart-pulse",

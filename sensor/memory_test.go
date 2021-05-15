@@ -1,9 +1,10 @@
-package main
+package sensor
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"hadaemon/entity"
 )
 
 func TestMemory(t *testing.T) {
@@ -15,13 +16,13 @@ func TestMemory(t *testing.T) {
 		SwapTotal:      16658428 kB
 		SwapFree:       15672316 kB
 	`
-	output := &payload{
+	output := &entity.Payload{
 		State: 468.02,
 		Attributes: map[string]interface{}{
-			"mem_total": 15897.49,
+			"mem_total":     15897.49,
 			"mem_available": 4364.49,
-			"swap_total": 16267.99,
-			"swap_free": 15304.99,
+			"swap_total":    16267.99,
+			"swap_free":     15304.99,
 		},
 	}
 

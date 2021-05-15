@@ -1,4 +1,4 @@
-package main
+package sensor
 
 import (
 	"context"
@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"hadaemon/entity"
 )
 
 type Uptime struct{}
@@ -15,7 +17,7 @@ func NewUptime() *Uptime {
 	return &Uptime{}
 }
 
-func (u Uptime) run(ctx context.Context) (*payload, error) {
+func (u Uptime) Run(ctx context.Context) (*entity.Payload, error) {
 	b, err := ioutil.ReadFile("/proc/uptime")
 	if err != nil {
 		return nil, err
@@ -23,8 +25,8 @@ func (u Uptime) run(ctx context.Context) (*payload, error) {
 	return u.process(string(b))
 }
 
-func (u Uptime) process(output string) (*payload, error) {
-	p := NewPayload()
+func (u Uptime) process(output string) (*entity.Payload, error) {
+	p := entity.NewPayload()
 	parts := strings.Fields(output)
 	if len(parts) < 2 {
 		return nil, fmt.Errorf("expected at least two values from /proc/uptime: %s", output)

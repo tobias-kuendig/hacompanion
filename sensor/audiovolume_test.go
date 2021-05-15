@@ -1,9 +1,10 @@
-package main
+package sensor
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"hadaemon/entity"
 )
 
 func TestAudioVolume(t *testing.T) {
@@ -16,7 +17,7 @@ func TestAudioVolume(t *testing.T) {
 		  Front Left: Playback 49151 [75%] [on]
 		  Front Right: Playback 49151 [75%] [on]
 	`
-	output := &payload{
+	output := &entity.Payload{
 		State: "75",
 		Attributes: map[string]interface{}{
 			"muted": "off",

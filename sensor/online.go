@@ -1,4 +1,4 @@
-package main
+package sensor
 
 import (
 	"context"
@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os/exec"
 	"time"
+
+	"hadaemon/entity"
 )
 
 type OnlineCheck struct {
@@ -14,7 +16,7 @@ type OnlineCheck struct {
 	client http.Client
 }
 
-func NewOnlineCheck(m Meta) *OnlineCheck {
+func NewOnlineCheck(m entity.Meta) *OnlineCheck {
 	o := OnlineCheck{
 		mode: "ping",
 		client: http.Client{
@@ -30,7 +32,7 @@ func NewOnlineCheck(m Meta) *OnlineCheck {
 	return &o
 }
 
-func (o OnlineCheck) run(ctx context.Context) (*payload, error) {
+func (o OnlineCheck) Run(ctx context.Context) (*entity.Payload, error) {
 	if o.target == "" {
 		return nil, fmt.Errorf("online check requires target to be specified")
 	}
@@ -44,8 +46,8 @@ func (o OnlineCheck) run(ctx context.Context) (*payload, error) {
 	}
 }
 
-func (o OnlineCheck) checkHTTP(ctx context.Context) (*payload, error) {
-	p := NewPayload()
+func (o OnlineCheck) checkHTTP(ctx context.Context) (*entity.Payload, error) {
+	p := entity.NewPayload()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, o.target, nil)
 	if err != nil {
 		return nil, err
@@ -65,8 +67,8 @@ func (o OnlineCheck) checkHTTP(ctx context.Context) (*payload, error) {
 	return p, nil
 }
 
-func (o OnlineCheck) checkPing(ctx context.Context) (*payload, error) {
-	p := NewPayload()
+func (o OnlineCheck) checkPing(ctx context.Context) (*entity.Payload, error) {
+	p := entity.NewPayload()
 	cmd := exec.CommandContext(ctx, "ping", "-c 2", "-w 4", o.target)
 	err := cmd.Run()
 	if err != nil {

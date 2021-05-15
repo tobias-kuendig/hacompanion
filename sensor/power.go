@@ -1,4 +1,4 @@
-package main
+package sensor
 
 import (
 	"context"
@@ -7,13 +7,16 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"hadaemon/entity"
+	"hadaemon/util"
 )
 
 type Power struct {
 	Battery string
 }
 
-func NewPower(m Meta) *Power {
+func NewPower(m entity.Meta) *Power {
 	c := &Power{Battery: "BAT0"}
 	if b := m.GetString("battery"); b != "" {
 		c.Battery = b
@@ -21,7 +24,7 @@ func NewPower(m Meta) *Power {
 	return c
 }
 
-func (pwr Power) run(ctx context.Context) (*payload, error) {
+func (pwr Power) Run(ctx context.Context) (*entity.Payload, error) {
 	dir := fmt.Sprintf("/sys/class/power_supply/%s", pwr.Battery)
 	_, err := os.Stat(dir)
 	if os.IsNotExist(err) {
@@ -31,7 +34,7 @@ func (pwr Power) run(ctx context.Context) (*payload, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to eval symlink %s: %s", dir, err)
 	}
-	p := NewPayload()
+	p := entity.NewPayload()
 	err = filepath.WalkDir(realPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -45,7 +48,7 @@ func (pwr Power) run(ctx context.Context) (*payload, error) {
 		case "capacity_level":
 			p.Attributes["level"] = pwr.optimisticRead(filepath.Join(realPath, d.Name()))
 		case "present":
-			p.Attributes["battery_present"] = stringToOnOff(pwr.optimisticRead(filepath.Join(realPath, d.Name())))
+			p.Attributes["battery_present"] = util.StringToOnOff(pwr.optimisticRead(filepath.Join(realPath, d.Name())))
 		case "status":
 			p.Attributes["status"] = pwr.optimisticRead(filepath.Join(realPath, d.Name()))
 		case "voltage_now":
@@ -61,11 +64,11 @@ func (pwr Power) run(ctx context.Context) (*payload, error) {
 	})
 	// Check if a power cable is attached.
 	acLink := "/sys/class/power_supply/AC"
-	if exists, _ := fileExists(acLink); exists {
+	if exists, _ := util.FileExists(acLink); exists {
 		if realPath, err := filepath.EvalSymlinks(acLink); err == nil {
 			acInfo := filepath.Join(realPath, "online")
-			if exists, _ := fileExists(acLink); exists {
-				p.Attributes["ac_connected"] = stringToOnOff(pwr.optimisticRead(acInfo))
+			if exists, _ := util.FileExists(acLink); exists {
+				p.Attributes["ac_connected"] = util.StringToOnOff(pwr.optimisticRead(acInfo))
 			}
 		}
 	}

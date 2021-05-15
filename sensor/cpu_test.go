@@ -1,9 +1,10 @@
-package main
+package sensor
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"hadaemon/entity"
 )
 
 func TestCPUUsage(t *testing.T) {
@@ -21,7 +22,7 @@ func TestCPUUsage(t *testing.T) {
 	// u1=1000+2000     t1=1000+2000+5000
 	// u2=2000+4000     t2=2000+4000+10000
 	// u=(u2-u1) * 100 / (t2-t1) = % usage
-	output := &payload{
+	output := &entity.Payload{
 		State: 37.5,
 		Attributes: map[string]interface{}{
 			"core_0": 33.33,
@@ -56,7 +57,7 @@ func TestCPUTemp(t *testing.T) {
 		Adapter: Virtual device
 		temp1:        +37.0°C  
 	`
-	output := &payload{
+	output := &entity.Payload{
 		State: "99.0",
 		Attributes: map[string]interface{}{
 			"core_0": "34.0",
@@ -68,7 +69,7 @@ func TestCPUTemp(t *testing.T) {
 		},
 	}
 
-	c := NewCPUTemp(Meta{"celsius": true})
+	c := NewCPUTemp(entity.Meta{"celsius": true})
 
 	res, err := c.process(input)
 	require.NoError(t, err)
