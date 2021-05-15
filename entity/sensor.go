@@ -27,6 +27,16 @@ type SensorConfig struct {
 	Meta    map[string]interface{}
 }
 
+// ScriptConfig contains the definition of a custom script sensor.
+type ScriptConfig struct {
+	Path              string
+	Name              string
+	Icon              string
+	Type              string
+	UnitOfMeasurement string
+	DeviceClass       string
+}
+
 // Sensor is a concrete instance of a sensor defined in the config file.
 // It's Runner is run to gather data.
 type Sensor struct {

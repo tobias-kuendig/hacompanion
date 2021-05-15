@@ -8,6 +8,7 @@ type Config struct {
 	Companion     companionConfig                `toml:"companion"`
 	Notifications notificationsConfig            `toml:"notifications"`
 	Sensors       map[string]entity.SensorConfig `toml:"sensor"`
+	Script        map[string]entity.ScriptConfig `toml:"script"`
 }
 
 type homeassistantConfig struct {

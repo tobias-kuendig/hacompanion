@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"hacompanion/sensor"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -178,6 +179,7 @@ func (k *Kernel) Shutdown(ctx context.Context) error {
 // buildSensor returns a slice of concrete Sensor types based on the configuration.
 func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
 	var sensors []entity.Sensor
+	// Parse default sensor configuration.
 	for key, sensorConfig := range config.Sensors {
 		if !sensorConfig.Enabled {
 			continue
@@ -194,6 +196,17 @@ func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
 			DeviceClass: data.DeviceClass,
 			Icon:        data.Icon,
 			Unit:        data.Unit,
+		})
+	}
+	// Parse custom scripts.
+	for key, scriptConfig := range config.Script {
+		sensors = append(sensors, entity.Sensor{
+			Runner:      sensor.NewScriptRunner(scriptConfig),
+			DeviceClass: scriptConfig.DeviceClass,
+			Icon:        scriptConfig.Icon,
+			Name:        scriptConfig.Name,
+			UniqueID:    key,
+			Unit:        scriptConfig.UnitOfMeasurement,
 		})
 	}
 	return sensors, nil

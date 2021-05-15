@@ -4,8 +4,7 @@
 
 This is an unofficial Desktop Companion App for Home Assistant written in Go.
 
-The companion is running as a background process and sends local hardware information 
-to your Home Assistant instance.
+The companion is running as a background process and sends local hardware information to your Home Assistant instance.
 
 Currently, **Linux** is the only supported operating system (tested on Ubuntu 20.04 / KDE Neon)
 
@@ -25,12 +24,16 @@ Currently, **Linux** is the only supported operating system (tested on Ubuntu 20
 ## Getting started
 
 1. Download a copy of the [configuration file](hacompanion.toml). Save it to `~/.config/hacompanion.toml`.
-1. In Home Assistant, generate a token by visting [your profile page](https://www.home-assistant.io/docs/authentication/#your-account-profile), then click on `Generate Token` at the end of the page.
+1. In Home Assistant, generate a token by
+   visting [your profile page](https://www.home-assistant.io/docs/authentication/#your-account-profile), then click on `Generate Token` at
+   the end of the page.
 1. Update your `~/.config/hacompanion.toml` file's `[homeassistant]` section with the generated `token`.
 1. Set the display name of your device (`device_name`) and the URL of your Home Assistant instance (`host`).
-1. If you plan to receive notifications from Home Assistant on your Desktop, change the `push_url` setting under `[notifications]` to point to your local IP address. 
+1. If you plan to receive notifications from Home Assistant on your Desktop, change the `push_url` setting under `[notifications]` to point
+   to your local IP address.
 1. Configure all sensors in the configuration file as you see fit.
-1. Run the companion by executing `./hacompanion` (use the `-config=/path/to/config` flag to pass the path to a custom configuration file, `~/.config/hacompanion.toml` is used by default).
+1. Run the companion by executing `./hacompanion` (use the `-config=/path/to/config` flag to pass the path to a custom configuration
+   file, `~/.config/hacompanion.toml` is used by default).
 
 ## Run the companion on system boot
 
@@ -60,15 +63,74 @@ sudo service hacompanion start
 # sudo service hacompanion status
 ```
 
+## Custom scripts
+
+You can add any number of custom scripts in your configuration file.
+
+The companion will call these scripts and send the output to Home Assistant. It does not matter what language the script is written in, as
+long as it can be executed from the command line.
+
+The output of your script has to be as follows:
+
+```
+my_state_value
+custom_attribute_1:value 1
+custom_attribute_2:value 2
+```
+
+The above would be translated to the following json payload:
+
+```json
+{
+  "state": "my_state_value",
+  "attributes": {
+    "custom_attribute_1": "value 1",
+    "custom_attribute_2": "value 2"
+  }
+}
+```
+
+The state (first line) is required. Attributes are optional.
+
+### Example script
+
+The following bash script reports the current time to Home Assistant.
+
+It can be registered like this:
+
+```toml
+[script.custom_time]
+path = "/path/to/script.sh"
+name = "The current time"
+icon = "mdi:clock-outline"
+type = "sensor" 
+```
+
+The script content:
+
+```bash
+#!/bin/bash
+date "+%H:%M"             # First line, state of the sensor
+echo formatted:$(date)    # Custom "formatted" Attribute
+echo unix:$(date "+%s")   # Custom "unix" Attribute
+```
+
+The output:
+
+```text
+16:34
+formatted:Sa 15 Mai 2021 16:34:40 CEST
+unix:1621089280
+```
+
 ## Receiving notifications
 
-The companion can receive notifications from Home Assistant and display
-them using `libnotify`. To test the integration, start the companion
+The companion can receive notifications from Home Assistant and display them using `libnotify`. To test the integration, start the companion
 and execute the following service in Home Assistant:
 
 ```yaml
 service: notify.mobile_app_your_device # change this!
-data: 
+data:
   title: "Message Title"
   message: "Message Body"
   data:
@@ -78,5 +140,6 @@ data:
 
 ## Automation ideas
 
-Feel free to share your automation ideas [in the Discussions section](https://github.com/tobias-kuendig/hacompanion/discussions) of this repo.
+Feel free to share your automation ideas [in the Discussions section](https://github.com/tobias-kuendig/hacompanion/discussions) of this
+repo.
 

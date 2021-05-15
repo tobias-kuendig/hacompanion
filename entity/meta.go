@@ -18,3 +18,12 @@ func (m Meta) GetString(key string) string {
 	}
 	return ""
 }
+
+func (m Meta) GetStringSlice(key string) []string {
+	if v, ok := m[key]; ok {
+		if value, isSlice := v.([]string); isSlice {
+			return value
+		}
+	}
+	return []string{}
+}
