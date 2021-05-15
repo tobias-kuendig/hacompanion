@@ -19,7 +19,6 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"hacompanion/api"
-	"hacompanion/companion"
 	"hacompanion/entity"
 	"hacompanion/util"
 )
@@ -31,7 +30,7 @@ var Version = "1.0"
 type Kernel struct {
 	config        *Config
 	api           *api.API
-	notifications *companion.NotificationServer
+	notifications *NotificationServer
 	ctxCancel     context.CancelFunc
 	bgProcesses   *sync.WaitGroup
 }
@@ -122,11 +121,11 @@ func (k *Kernel) Run(appCtx context.Context) error {
 	}
 
 	// Start the notifications server.
-	k.notifications = companion.NewNotificationServer(registration, k.config.Notifications.Listen)
+	k.notifications = NewNotificationServer(registration, k.config.Notifications.Listen)
 	go k.notifications.Listen(ctx)
 
 	// The Companion gathers sensor data and forwards it to Home Assistant.
-	c := companion.NewCompanion(k.api, sensors)
+	c := NewCompanion(k.api, sensors)
 
 	// Start the background processes.
 	k.bgProcesses.Add(1)

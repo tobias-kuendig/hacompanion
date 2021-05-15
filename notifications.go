@@ -1,4 +1,4 @@
-package companion
+package main
 
 import (
 	"context"
@@ -12,29 +12,6 @@ import (
 	"hacompanion/api"
 	"hacompanion/util"
 )
-
-// Notification is used to send notifications using native tools.
-type Notification struct{}
-
-func (n *Notification) Send(ctx context.Context, title, message string, data api.PushNotificationData) error {
-	var args []string
-	if data.Expire > 0 {
-		args = append(args, "-t", strconv.Itoa(data.Expire))
-	}
-	if data.Urgency != "" {
-		args = append(args, "-u", data.Urgency)
-	}
-	args = append(args, "-a", "Home Assistant")
-	if title != "" {
-		args = append(args, title)
-	}
-	args = append(args, message)
-	cmd := exec.CommandContext(ctx, "notify-send", args...)
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	return nil
-}
 
 // NotificationServer listens for incoming notifications from Home Assistant.
 type NotificationServer struct {
@@ -83,4 +60,27 @@ func (s NotificationServer) Listen(ctx context.Context) {
 	if err := s.Server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		log.Fatalf("failed to start notifications server: %s", err)
 	}
+}
+
+// Notification is used to send notifications using native tools.
+type Notification struct{}
+
+func (n *Notification) Send(ctx context.Context, title, message string, data api.PushNotificationData) error {
+	var args []string
+	if data.Expire > 0 {
+		args = append(args, "-t", strconv.Itoa(data.Expire))
+	}
+	if data.Urgency != "" {
+		args = append(args, "-u", data.Urgency)
+	}
+	args = append(args, "-a", "Home Assistant")
+	if title != "" {
+		args = append(args, title)
+	}
+	args = append(args, message)
+	cmd := exec.CommandContext(ctx, "notify-send", args...)
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	return nil
 }

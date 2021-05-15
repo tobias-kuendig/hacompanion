@@ -1,4 +1,4 @@
-package companion
+package main
 
 import (
 	"context"
