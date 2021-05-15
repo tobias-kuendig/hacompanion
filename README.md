@@ -1,8 +1,6 @@
 # Desktop Companion for Home Assistant
 
-[![test](https://github.com/tobias-kuendig/hacompanion/actions/workflows/test.yml/badge.svg)](https://github.com/tobias-kuendig/hacompanion/actions/workflows/test.yml)
-[![lint](https://github.com/tobias-kuendig/hacompanion/actions/workflows/lint.yml/badge.svg)](https://github.com/tobias-kuendig/hacompanion/actions/workflows/lint.yml)
-[![goreleaser](https://github.com/tobias-kuendig/hacompanion/actions/workflows/release.yml/badge.svg)](https://github.com/tobias-kuendig/hacompanion/actions/workflows/release.yml)
+[![Test and build](https://github.com/tobias-kuendig/hacompanion/actions/workflows/build.yml/badge.svg)](https://github.com/tobias-kuendig/hacompanion/actions/workflows/build.yml)
 
 This is an unofficial Desktop Companion app for Home Assistant.
 
