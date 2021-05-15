@@ -85,18 +85,14 @@ name = "Load Avg"
 enabled = true
 name = "Audio Volume"
 
-# Register a custom sensor that is populated by a custom script.
-# See the README for more details on this feature.
-[script.your_custom_script_sensor]
-path = "/path/to/your/script.sh"
-# Attributes according to
-# https://developers.home-assistant.io/docs/api/native-app-integration/sensors
-name = "Friendly name of your custom sensor"
-icon = "mdi:script-text"
-type = "sensor" # or binary_sensor
-# unit_of_measurement = "%"
-# device_class = "battery"
-
-# [script.another_custom_script]
-# path = "/path/to/script.htm"
-# name = "Add as many as you want"
+## Register a custom sensor that is populated by a custom script.
+## See the README for more details on this feature.
+# [script.your_custom_script_sensor]
+# path = "/path/to/your/script.sh"
+## Attributes according to
+## https://developers.home-assistant.io/docs/api/native-app-integration/sensors
+# name = "Friendly name of your custom sensor"
+# icon = "mdi:script-text"
+# type = "sensor" # or binary_sensor
+## unit_of_measurement = "%"
+## device_class = "battery"

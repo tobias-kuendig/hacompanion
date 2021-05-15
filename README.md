@@ -2,7 +2,7 @@
 
 [![Test and build](https://github.com/tobias-kuendig/hacompanion/actions/workflows/build.yml/badge.svg)](https://github.com/tobias-kuendig/hacompanion/actions/workflows/build.yml)
 
-This is an unofficial Desktop Companion App for Home Assistant written in Go.
+This is an unofficial Desktop Companion App for [Home Assistant](https://www.home-assistant.io/) written in Go.
 
 The companion is running as a background process and sends local hardware information to your Home Assistant instance.
 
