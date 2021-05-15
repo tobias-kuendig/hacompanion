@@ -49,10 +49,12 @@ If your system is using Systemd, you can use the following unit file to run the 
 Description=Home Assistant Desktop Companion
 
 [Service]
+User=user-username        # Change this
+Group=user-username       # Change this
+ExecStart=/path/to/hacompanion -config=/home/yourname/.config/hacompanion.toml # Change this
 Type=simple
 Restart=on-failure
 RuntimeMaxSec=604800
-ExecStart=/path/to/hacompanion -config=/home/yourname/.config/hacompanion.toml
 
 [Install]
 WantedBy=multi-user.target
