@@ -9,6 +9,7 @@ Additionally, you can send notifications from Home Assistant to your Computer an
 
 Currently, **Linux** is the only supported operating system (tested on Ubuntu 20.04 / KDE Neon)
 
+
 ## Supported sensors
 
 * CPU temperature
@@ -21,6 +22,13 @@ Currently, **Linux** is the only supported operating system (tested on Ubuntu 20
 * Audio volume
 * Webcam process count
 * Custom scripts
+
+## Installation
+
+You can download a compiled binary [from the releases page](https://github.com/tobias-kuendig/hacompanion/releases) or alternatively use the provided
+`deb` or `rpm` packages.
+
+Just download the `_binary` file for your architecture and copy it to `~/.local/bin/hacompanion` (or any other path on your system).
 
 ## Getting started
 
