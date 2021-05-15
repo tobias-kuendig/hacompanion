@@ -5,7 +5,7 @@
 This is an unofficial Desktop Companion App for [Home Assistant](https://www.home-assistant.io/) written in Go.
 
 The companion is running as a background process and sends local hardware information to your Home Assistant instance.
-Additionally, you can send notifications from Home Assistant to your Computer and display them using `libnotify`.
+Additionally, you can send notifications from Home Assistant to your Computer and display them using `notify-send`.
 
 Currently, **Linux** is the only supported operating system (tested on Ubuntu 20.04 / KDE Neon)
 
@@ -126,7 +126,7 @@ unix:1621089280
 
 ## Receiving notifications
 
-The companion can receive notifications from Home Assistant and display them using `libnotify`. To test the integration, start the companion
+The companion can receive notifications from Home Assistant and display them using `notify-send`. To test the integration, start the companion
 and execute the following service in Home Assistant:
 
 ```yaml

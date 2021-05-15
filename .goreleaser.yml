@@ -13,6 +13,8 @@ builds:
 #      - darwin
 nfpms:
   - package_name: hacompanion
+    maintainer: Tobias Kuendig <tobias@offline.ch>
+    description: Desktop Companion for Home Assistant.
     formats:
       - deb
       - rpm
@@ -20,6 +22,7 @@ nfpms:
     dependencies:
       - lm-sensors
       - iputils-ping
+      - libnotify-bin
 checksum:
   name_template: 'checksums.txt'
 snapshot:
