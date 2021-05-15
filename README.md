@@ -11,15 +11,15 @@ Currently, **Linux** is the only supported operating system (tested on Ubuntu 20
 
 ## Supported sensors
 
-* CPU Temperature
-* CPU Usage
+* CPU temperature
+* CPU usage
 * Load average
-* Memory Usage
+* Memory usage
 * Uptime
 * Power stats
 * Online check
 * Audio volume
-* Webcam Process Count
+* Webcam process count
 * Custom scripts
 
 ## Getting started
