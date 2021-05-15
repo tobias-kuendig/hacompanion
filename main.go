@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -18,9 +17,19 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+type Kernel struct {
+	config        *Config
+	api           *API
+	notifications *NotificationServer
+	ctxCancel     context.CancelFunc
+	bgProcesses   *sync.WaitGroup
+}
+
 var registrationFile = "registration.json"
 
 func main() {
+	// Get some randomness going.
+	rand.Seed(time.Now().UnixNano())
 	// Try to parse the config file.
 	var config Config
 	b, err := ioutil.ReadFile("hadaemon.toml")
@@ -30,66 +39,72 @@ func main() {
 	if _, err = toml.Decode(string(b), &config); err != nil {
 		log.Fatalf("failed to parse config file: %s", err)
 	}
-	// Get some randomness going.
-	rand.Seed(time.Now().UnixNano())
+
+	k := Kernel{
+		config: &config,
+		api:    NewAPI(config.Host, config.Token),
+	}
+
 	// Handle shutdowns gracefully.
-	sigs := make(chan os.Signal, 1)
-	done := make(chan error, 1)
+	stop := make(chan os.Signal, 1)
 
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	// Cancel the context once a shutdown signal was received.
-	go func() {
-		<- sigs
-		log.Println("SIG RECEIVED")
-		cancel()
-	}()
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	// Start the main process.
-	go func(ctx context.Context) {
-		api := NewAPI(config.Host, config.Token)
-		err := run(ctx, config, api)
-		log.Printf("ERR RECEIVED: %s\n", err)
-		done <- err
-	}(ctx)
+	go func() {
+		err := k.Run(context.Background())
+		if err != nil {
+			log.Fatalf("failed to stop application: %w", err)
+		}
+	}()
 
-	// Wait for the error to return.
-	if err := <-done; err != nil {
-		log.Fatalf("exited with error: %s", err)
+	// Wait for the quit signal.
+	<-stop
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := k.Shutdown(ctx); err != nil {
+		log.Fatalf("application shutdown error: %v\n", err)
+	} else {
+		log.Println("application stopped")
 	}
-	log.Println("DONE")
 }
 
-func run(ctx context.Context, config Config, api *API) error {
+func (k *Kernel) Run(appCtx context.Context) error {
+	// Create a global application context.
+	ctx, cancel := context.WithCancel(appCtx)
+	k.ctxCancel = cancel
+
+	// Create a WaitGroup for all backend processes.
+	k.bgProcesses = &sync.WaitGroup{}
+
 	// Make sure the device is registered in Home Assistant.
-	registration, err := getRegistration(ctx, api, config)
+	registration, err := getRegistration(ctx, k.api, k.config)
 	if err != nil {
 		return fmt.Errorf("failed to get device registrationo: %w", err)
 	}
-	api.registration = registration
+	k.api.registration = registration
 
 	// Parse all sensors out of the config file and register them in Home Assistant.
-	sensors, err := buildSensors(config)
+	sensors, err := buildSensors(k.config)
 	if err != nil {
 		return fmt.Errorf("failed to build sensors from config: %w", err)
 	}
-	err = api.RegisterSensors(ctx, sensors)
+	err = k.api.RegisterSensors(ctx, sensors)
 	if err != nil {
 		return err
 	}
 
 	// Start the notifications server.
-	notifications := NewNotificationServer(registration)
-	go notifications.Listen(ctx)
+	k.notifications = NewNotificationServer(registration)
+	go k.notifications.Listen(ctx)
 
 	// The Companion gathers sensor data and forwards it to Home Assistant.
-	companion := NewCompanion(api, sensors)
+	companion := NewCompanion(k.api, sensors)
 
 	// Start the background processes.
-	var bgProcesses sync.WaitGroup
-	go companion.RunBackgroundProcesses(ctx, &bgProcesses)
+	go companion.RunBackgroundProcesses(ctx, k.bgProcesses)
 
 	// Run the first update immediately.
 	companion.UpdateSensorData(ctx)
@@ -97,26 +112,36 @@ func run(ctx context.Context, config Config, api *API) error {
 	// Keep updating the sensor data in a regular interval.
 	t := time.NewTicker(10 * time.Second)
 
-	// Done chan signals, when everything is done.
-	done := make(chan struct{})
-	go func() {
-		bgProcesses.Wait()
-		done <- struct{}{}
-	}()
-
 	for {
 		select {
 		case <-t.C:
 			companion.UpdateSensorData(ctx)
 		case <-ctx.Done():
-			select {
-			case <-done:
-				return nil
-			case <-time.After(5 * time.Second):
-				return errors.New("failed to shut down background processes")
-			}
+			return nil
 		}
 	}
+}
+
+// Shutdown shuts down the main routine.
+func (k *Kernel) Shutdown(ctx context.Context) error {
+	// Cancel global context, then wait for all processes to quit.
+	k.ctxCancel()
+	done := make(chan struct{})
+	go func() {
+		k.bgProcesses.Wait()
+		close(done)
+	}()
+	// Wait for either everything to shut down properly or the the timeout of the context to trigger.
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-done:
+		break
+	}
+	if err := k.notifications.server.Shutdown(ctx); err != nil {
+		return fmt.Errorf("server shutdown error: %w", err)
+	}
+	return nil
 }
 
 type sensorDefinition struct {
@@ -214,7 +239,7 @@ func (s Sensor) String() string {
 	return fmt.Sprintf("%s (%s)", s.name, s.uniqueID)
 }
 
-func buildSensors(config Config) ([]Sensor, error) {
+func buildSensors(config *Config) ([]Sensor, error) {
 	var sensors []Sensor
 	for key, sensorConfig := range config.Sensors {
 		if !sensorConfig.Enabled {
@@ -237,7 +262,7 @@ func buildSensors(config Config) ([]Sensor, error) {
 	return sensors, nil
 }
 
-func getRegistration(ctx context.Context, api *API, config Config) (Registration, error) {
+func getRegistration(ctx context.Context, api *API, config *Config) (Registration, error) {
 	var registration Registration
 	var err error
 	_, err = os.Stat(registrationFile)
@@ -258,7 +283,7 @@ func getRegistration(ctx context.Context, api *API, config Config) (Registration
 	return registerDevice(ctx, api, config)
 }
 
-func registerDevice(ctx context.Context, api *API, config Config) (Registration, error) {
+func registerDevice(ctx context.Context, api *API, config *Config) (Registration, error) {
 	id := RandomString(8)
 	token := RandomString(8)
 	registration, err := api.RegisterDevice(ctx, RegisterDeviceRequest{

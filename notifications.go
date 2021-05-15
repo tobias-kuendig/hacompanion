@@ -11,14 +11,20 @@ type NotificationServer struct {
 	registration Registration
 	mux          *http.ServeMux
 	address      string
+	server       *http.Server
 }
 
 func NewNotificationServer(registration Registration) *NotificationServer {
-	return &NotificationServer{
+	s := &NotificationServer{
 		registration: registration,
 		mux:          http.NewServeMux(),
 		address:      ":8080",
 	}
+	s.server = &http.Server{
+		Addr:    s.address,
+		Handler: s.mux,
+	}
+	return s
 }
 
 func (s NotificationServer) Listen(ctx context.Context) {
@@ -44,19 +50,8 @@ func (s NotificationServer) Listen(ctx context.Context) {
 		respondSuccess(w)
 	})
 
-	srv := &http.Server{
-		Addr:    s.address,
-		Handler: s.mux,
+	err := s.server.ListenAndServe()
+	if err != nil {
+		log.Fatal(err)
 	}
-
-	go func() {
-		err := srv.ListenAndServe()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	<-ctx.Done()
-
-	_ = srv.Shutdown(ctx)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"sync"
+	"time"
 )
 
 type Outputs struct {
@@ -75,6 +76,7 @@ func (c *Companion) RunBackgroundProcesses(ctx context.Context, wg *sync.WaitGro
 	defer wg.Done()
 
 	var processWg sync.WaitGroup
+	processWg.Add(1)
 
 	go c.UpdateCompanionRunningState(ctx, &processWg)
 
@@ -83,10 +85,8 @@ func (c *Companion) RunBackgroundProcesses(ctx context.Context, wg *sync.WaitGro
 
 // UpdateCompanionRunningState updates the companion running state.
 func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.WaitGroup) {
-	wg.Add(1)
-
 	update := func(state bool) {
-		err := c.api.UpdateSensorData(ctx, []UpdateSensorDataRequest{{
+		err := c.api.UpdateSensorData(context.Background(), []UpdateSensorDataRequest{{
 			State:    state,
 			Type:     "sensor",
 			Icon:     "mdi:heart-pulse",
@@ -100,6 +100,7 @@ func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.Wa
 	update(true)
 	defer func() {
 		update(false)
+		time.Sleep(5 * time.Second)
 		wg.Done()
 	}()
 
