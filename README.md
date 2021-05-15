@@ -24,6 +24,7 @@ Currently, **Linux** is the only supported operating system (tested on Ubuntu 20
 
 ## Getting started
 
+1. Make sure you have the [Mobile App integration](https://www.home-assistant.io/integrations/mobile_app/) enabled in Home Assistant (it is on by default).
 1. Download a copy of the [configuration file](hacompanion.toml). Save it to `~/.config/hacompanion.toml`.
 1. In Home Assistant, generate a token by
    visting [your profile page](https://www.home-assistant.io/docs/authentication/#your-account-profile), then click on `Generate Token` at
@@ -35,6 +36,7 @@ Currently, **Linux** is the only supported operating system (tested on Ubuntu 20
 1. Configure all sensors in the configuration file as you see fit.
 1. Run the companion by executing `./hacompanion` (use the `-config=/path/to/config` flag to pass the path to a custom configuration
    file, `~/.config/hacompanion.toml` is used by default).
+1. You should now see your new sensors under `Settings -> Integrations -> Mobile App -> Your Device`.
 
 ## Run the companion on system boot
 
