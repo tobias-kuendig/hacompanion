@@ -1,6 +1,12 @@
 name: goreleaser
 
 on:
+  workflow_run:
+    workflows: [ "Run Tests" ]
+    branches: [ main ]
+    types:
+      - completed
+      - requested
   push:
     tags:
       - '*'
@@ -11,6 +17,7 @@ permissions:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+    needs: [test, lint]
     steps:
       -
         name: Checkout
