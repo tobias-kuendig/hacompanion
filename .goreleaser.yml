@@ -25,6 +25,7 @@ nfpms:
       - libnotify-bin
 archives:
   - format: binary
+    name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}_binary"
 checksum:
   name_template: 'checksums.txt'
 snapshot:
