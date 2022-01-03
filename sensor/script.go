@@ -39,7 +39,15 @@ func (s Script) Run(ctx context.Context) (*entity.Payload, error) {
 		line := strings.TrimSpace(sc.Text())
 		// First line has to contain state.
 		if n == 1 {
-			p.State = line
+			if s.cfg.Type == "binary_sensor" {
+				// Binary sensor -> convert string to bool
+				line_lower := strings.ToLower(line)
+				strtobool := map[string]bool{"on": true, "true": true, "yes": true}
+				p.State = strtobool[line_lower]
+			} else {
+				// Regular sensor
+				p.State = line
+			}
 			continue
 		}
 		// Other lines are attributes.

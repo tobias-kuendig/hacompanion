@@ -14,6 +14,7 @@ type Runner interface {
 
 // SensorDefinition contains all Home Assistant attributes.
 type SensorDefinition struct {
+	Type        string
 	Runner      func(Meta) Runner
 	DeviceClass string
 	Icon        string
@@ -40,6 +41,7 @@ type ScriptConfig struct {
 // Sensor is a concrete instance of a sensor defined in the config file.
 // It's Runner is run to gather data.
 type Sensor struct {
+	Type        string
 	Runner      Runner
 	DeviceClass string
 	Icon        string

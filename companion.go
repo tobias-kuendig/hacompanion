@@ -39,7 +39,7 @@ func (c *Companion) UpdateSensorData(ctx context.Context) {
 			continue
 		}
 		data = append(data, api.UpdateSensorDataRequest{
-			Type:       "sensor",
+			Type:       output.Sensor.Type,
 			State:      output.Payload.State,
 			Attributes: output.Payload.Attributes,
 			UniqueId:   output.Sensor.UniqueID,
@@ -70,7 +70,7 @@ func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.Wa
 	update := func(state bool) {
 		err := c.api.UpdateSensorData(context.Background(), []api.UpdateSensorDataRequest{{
 			State:    state,
-			Type:     "sensor",
+			Type:     "binary_sensor",
 			Icon:     "mdi:heart-pulse",
 			UniqueId: "companion_running",
 		}})

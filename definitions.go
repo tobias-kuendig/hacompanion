@@ -13,6 +13,7 @@ var sensorDefinitions = map[string]func(m entity.Meta) entity.SensorDefinition{
 			unit = "F"
 		}
 		return entity.SensorDefinition{
+			Type:        "sensor",
 			Runner:      func(m entity.Meta) entity.Runner { return sensor.NewCPUTemp(m) },
 			DeviceClass: "temperature",
 			Icon:        "mdi:thermometer",
@@ -21,6 +22,7 @@ var sensorDefinitions = map[string]func(m entity.Meta) entity.SensorDefinition{
 	},
 	"cpu_usage": func(m entity.Meta) entity.SensorDefinition {
 		return entity.SensorDefinition{
+			Type:   "sensor",
 			Runner: func(m entity.Meta) entity.Runner { return sensor.NewCPUUsage() },
 			Icon:   "mdi:gauge",
 			Unit:   "%",
@@ -28,12 +30,14 @@ var sensorDefinitions = map[string]func(m entity.Meta) entity.SensorDefinition{
 	},
 	"memory": func(m entity.Meta) entity.SensorDefinition {
 		return entity.SensorDefinition{
+			Type:   "sensor",
 			Runner: func(meta entity.Meta) entity.Runner { return sensor.NewMemory() },
 			Icon:   "mdi:memory",
 		}
 	},
 	"power": func(m entity.Meta) entity.SensorDefinition {
 		return entity.SensorDefinition{
+			Type:        "sensor",
 			Runner:      func(m entity.Meta) entity.Runner { return sensor.NewPower(m) },
 			Icon:        "mdi:battery",
 			DeviceClass: "battery",
@@ -43,6 +47,7 @@ var sensorDefinitions = map[string]func(m entity.Meta) entity.SensorDefinition{
 	"uptime": func(m entity.Meta) entity.SensorDefinition {
 		return entity.SensorDefinition{
 			Runner:      func(meta entity.Meta) entity.Runner { return sensor.NewUptime() },
+			Type:        "sensor",
 			Icon:        "mdi:sort-clock-descending",
 			DeviceClass: "timestamp",
 			Unit:        "ISO8601",
@@ -50,18 +55,21 @@ var sensorDefinitions = map[string]func(m entity.Meta) entity.SensorDefinition{
 	},
 	"load_avg": func(m entity.Meta) entity.SensorDefinition {
 		return entity.SensorDefinition{
+			Type:   "sensor",
 			Runner: func(meta entity.Meta) entity.Runner { return sensor.NewLoadAVG() },
 			Icon:   "mdi:gauge",
 		}
 	},
 	"webcam": func(m entity.Meta) entity.SensorDefinition {
 		return entity.SensorDefinition{
+			Type:   "sensor",
 			Runner: func(meta entity.Meta) entity.Runner { return sensor.NewWebCam() },
 			Icon:   "mdi:webcam",
 		}
 	},
 	"audio_volume": func(m entity.Meta) entity.SensorDefinition {
 		return entity.SensorDefinition{
+			Type:   "sensor",
 			Runner: func(meta entity.Meta) entity.Runner { return sensor.NewAudioVolume() },
 			Icon:   "mdi:volume-high",
 			Unit:   "%",
@@ -69,12 +77,14 @@ var sensorDefinitions = map[string]func(m entity.Meta) entity.SensorDefinition{
 	},
 	"online_check": func(m entity.Meta) entity.SensorDefinition {
 		return entity.SensorDefinition{
+			Type:   "sensor",
 			Runner: func(m entity.Meta) entity.Runner { return sensor.NewOnlineCheck(m) },
 			Icon:   "mdi:shield-check-outline",
 		}
 	},
 	"companion_running": func(m entity.Meta) entity.SensorDefinition {
 		return entity.SensorDefinition{
+			Type:   "binary_sensor",
 			Runner: func(meta entity.Meta) entity.Runner { return NullRunner{} },
 			Icon:   "mdi:heart-pulse",
 		}

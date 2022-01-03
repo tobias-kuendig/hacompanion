@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"hacompanion/api"
+	"hacompanion/entity"
 	"hacompanion/sensor"
+	"hacompanion/util"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -19,9 +22,6 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"hacompanion/api"
-	"hacompanion/entity"
-	"hacompanion/util"
 )
 
 // Version contains the binary's release version.
@@ -190,6 +190,7 @@ func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
 		}
 		data := definition(sensorConfig.Meta)
 		sensors = append(sensors, entity.Sensor{
+			Type:        data.Type,
 			Name:        sensorConfig.Name,
 			UniqueID:    key,
 			Runner:      data.Runner(sensorConfig.Meta),
@@ -201,6 +202,7 @@ func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
 	// Parse custom scripts.
 	for key, scriptConfig := range config.Script {
 		sensors = append(sensors, entity.Sensor{
+			Type:        scriptConfig.Type,
 			Runner:      sensor.NewScriptRunner(scriptConfig),
 			DeviceClass: scriptConfig.DeviceClass,
 			Icon:        scriptConfig.Icon,
