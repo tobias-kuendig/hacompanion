@@ -5,13 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"hacompanion/entity"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
 	"time"
-
-	"hacompanion/entity"
 )
 
 type RegisterDeviceRequest struct {
@@ -205,7 +204,7 @@ func (api *API) UpdateSensorData(ctx context.Context, data []UpdateSensorDataReq
 func (api *API) RegisterSensors(ctx context.Context, sensors []entity.Sensor) error {
 	for _, sensor := range sensors {
 		err := api.RegisterSensor(ctx, RegisterSensorRequest{
-			Type:              "sensor",
+			Type:              sensor.Type,
 			DeviceClass:       sensor.DeviceClass,
 			Icon:              sensor.Icon,
 			Name:              sensor.Name,
