@@ -110,15 +110,17 @@ func (r Registration) JSON() ([]byte, error) {
 type API struct {
 	Host         string
 	Token        string
+	DeviceName   string
 	client       http.Client
 	Registration Registration
 }
 
-func NewAPI(host, token string) *API {
+func NewAPI(host, token string, deviceName string) *API {
 	return &API{
-		Host:   host,
-		Token:  token,
-		client: http.Client{Timeout: 5 * time.Second},
+		Host:       host,
+		Token:      token,
+		DeviceName: deviceName,
+		client:     http.Client{Timeout: 5 * time.Second},
 	}
 }
 
