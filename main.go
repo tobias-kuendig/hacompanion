@@ -37,8 +37,14 @@ type Kernel struct {
 }
 
 func main() {
+	var hassToken string
+	var hassHost string
+	var deviceName string
 	var configFlag string
 	flag.StringVar(&configFlag, "config", "~/.config/hacompanion.toml", "Path to the config file")
+	flag.StringVar(&hassHost, "host", "", "Home Assistant host")
+	flag.StringVar(&hassToken, "token", "", "Long-lived access token")
+	flag.StringVar(&deviceName, "device-name", "", "Device name")
 	flag.Parse()
 
 	configFile, err := homePathFromString(configFlag)
@@ -62,10 +68,59 @@ func main() {
 		log.Fatalf("failed to parse config file: %s", err)
 	}
 
+	// Home Assistant host/url
+	// The --host flag takes precedence the env var
+	// if neither the flag nor the env var are set, use the value from the config
+	// file
+	// Default value: homeassistant.local
+	if hassHost == "" {
+		hassHost = os.Getenv("HASS_HOST")
+		if hassHost == "" {
+			hassHost = config.HomeAssistant.Host
+		}
+		// Default to homeassistant.local
+		if hassHost == "" {
+			hassHost = "http://homeassistant.local:8123"
+		}
+	}
+
+	// Home Assistant token
+	// The --token flag takes precedence the HASS_TOKEN env var
+	// if neither the flag nor the env var are set, use the value in the config
+	// file
+	if hassToken == "" {
+		hassToken = os.Getenv("HASS_TOKEN")
+		if hassToken == "" {
+			hassToken = config.HomeAssistant.Token
+		}
+	}
+
+	// device name
+	// The --device-name flag takes precedence the HASS_TOKEN env var
+	// if neither the flag nor the env var are set, use the value in the config
+	// file
+	// Default value: current hostname
+	if deviceName == "" {
+		deviceName = os.Getenv("HASS_DEVICE_NAME")
+		// Fall back to device name set in config
+		if deviceName == "" {
+			deviceName = config.HomeAssistant.DeviceName
+		}
+		if deviceName == "" {
+			// Fall back to system hostname if device name is unset in config
+			hostname, err := os.Hostname()
+			if err != nil {
+				log.Fatalf("failed to determine hostname: %s. Please set device name via HASS_DEVICE_NAME or the config file", err)
+			}
+
+			deviceName = hostname
+		}
+	}
+
 	// Build the application kernel.
 	k := Kernel{
 		config: &config,
-		api:    api.NewAPI(config.HomeAssistant.Host, config.HomeAssistant.Token),
+		api:    api.NewAPI(hassHost, hassToken, deviceName),
 	}
 
 	// Start the main process.
@@ -241,12 +296,13 @@ func (k *Kernel) getRegistration(ctx context.Context) (api.Registration, error) 
 func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	id := util.RandomString(8)
 	token := util.RandomString(8)
+
 	registration, err := k.api.RegisterDevice(ctx, api.RegisterDeviceRequest{
 		DeviceID:           id,
 		AppID:              "homeassistant-desktop-companion",
 		AppName:            "Home Assistant Desktop Companion",
 		AppVersion:         Version,
-		DeviceName:         k.config.HomeAssistant.DeviceName,
+		DeviceName:         k.api.DeviceName,
 		SupportsEncryption: false,
 		AppData: api.AppData{
 			PushToken: token,
