@@ -34,8 +34,8 @@ type ScriptConfig struct {
 	Name              string
 	Icon              string
 	Type              string
-	UnitOfMeasurement string
-	DeviceClass       string
+	UnitOfMeasurement string `toml:"unit_of_measurement"`
+	DeviceClass       string `toml:"device_class"`
 }
 
 // Sensor is a concrete instance of a sensor defined in the config file.
