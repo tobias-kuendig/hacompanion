@@ -77,7 +77,7 @@ var sensorDefinitions = map[string]func(m entity.Meta) entity.SensorDefinition{
 	},
 	"online_check": func(m entity.Meta) entity.SensorDefinition {
 		return entity.SensorDefinition{
-			Type:   "sensor",
+			Type:   "binary_sensor",
 			Runner: func(m entity.Meta) entity.Runner { return sensor.NewOnlineCheck(m) },
 			Icon:   "mdi:shield-check-outline",
 		}
