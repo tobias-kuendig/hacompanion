@@ -69,7 +69,7 @@ func (c *Companion) RunBackgroundProcesses(ctx context.Context, wg *sync.WaitGro
 func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.WaitGroup) {
 	update := func(state bool) {
 		bgCtx := context.Background()
-		if state == false {
+		if !state {
 			log.Printf("Invalidating all sensors")
 			c.InvalidateAllSensors(bgCtx)
 		}
