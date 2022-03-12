@@ -299,7 +299,7 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 
 	pushUrl, err := k.config.GetPushUrl()
 	if err != nil {
-		fmt.Errorf("Push notifications will not work with your current config")
+		log.Println("Push notifications will not work with your current config")
 	}
 
 	registration, err := k.api.RegisterDevice(ctx, api.RegisterDeviceRequest{

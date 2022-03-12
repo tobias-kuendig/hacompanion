@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"hacompanion/entity"
+	"log"
 	"net"
 )
 
@@ -57,7 +58,7 @@ func (c Config) GetPushUrl() (string, error) {
 
 	localIp, err := getLocalIp()
 	if err != nil {
-		fmt.Errorf("failed to determine local IP. Please set notifications.push_url in your config")
+		log.Println("failed to determine local IP. Please set notifications.push_url in your config")
 		return "", err
 	}
 
