@@ -42,8 +42,10 @@ the configuration:
    the end of the page.
 1. Update your `~/.config/hacompanion.toml` file's `[homeassistant]` section with the generated `token`.
 1. Set the display name of your device (`device_name`) and the URL of your Home Assistant instance (`host`).
-1. If you plan to receive notifications from Home Assistant on your Desktop, change the `push_url` setting under `[notifications]` to point
-   to your local IP address.
+1. To receive notifications on a specific IP address you may need to change the 
+`push_url` and `listen` settings under `[notifications]` to point respectively 
+to your local IP address and the listen port. Without any value hacompanion will 
+use your default NIC and listen on port `8080`.
 1. Configure all sensors in the configuration file as you see fit.
 1. Run the companion by executing `hacompanion` (use the `-config=/path/to/config` flag to pass the path to a custom configuration
    file, `~/.config/hacompanion.toml` is used by default).
