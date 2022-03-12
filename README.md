@@ -30,7 +30,7 @@ You can download a compiled binary [from the releases page](https://github.com/t
 
 Just download the `_binary` file for your architecture and copy it to `~/.local/bin/hacompanion` (or any other path on your system).
 
-You can now start the companion with the `hacompanion` command. But before doing so, you have to set up 
+You can now start the companion with the `hacompanion` command. But before doing so, you have to set up
 the configuration:
 
 ## Configuration and Setup
@@ -53,19 +53,28 @@ the configuration:
 
 If your system is using Systemd, you can use the following unit file to run the companion on system boot:
 
-```ini
-# sudo vi /etc/systemd/system/hacompanion.service
+```shell
+mkdir -p ${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user
+${EDITOR:-vi} "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/hacompanion.service"
+```
 
+```ini
 [Unit]
 Description=Home Assistant Desktop Companion
+Documentation=https://github.com/tobias-kuendig/hacompanion
+# Uncomment the line below if you are using NetworkManager to ensure hacompanion
+# only starts after your host is online
+# After=NetworkManager-wait-online.service
 
 [Service]
-User=user-username        # Change this
-Group=user-username       # Change this
-ExecStart=/path/to/hacompanion -config=/home/yourname/.config/hacompanion.toml # Change this
-Type=simple
+# Load ~/.config/hacompanion/env were you can for example set
+# HASS_TOKEN, HASS_DEVICE_NAME etc.
+EnvironmentFile=%E/hacompanion/env
+# Make sure to set the absolute path to hacompanion correctly below
+ExecStart=%h/.local/bin/hacompanion -config=%E/hacompanion.toml
 Restart=on-failure
-RuntimeMaxSec=604800
+RestartSec=5
+Type=simple
 
 [Install]
 WantedBy=multi-user.target
@@ -74,9 +83,12 @@ WantedBy=multi-user.target
 Start the companion by running:
 
 ```bash
-sudo service hacompanion start
-# check status with
-# sudo service hacompanion status
+systemctl --user daemon-reload
+systemctl --user enable --now hacompanion
+# check status with:
+# systemctl --user status hacompanion
+# and logs with:
+# journalctl --user -xlf -u hacompanion
 ```
 
 ## Custom scripts
@@ -119,7 +131,7 @@ It can be registered like this:
 path = "/path/to/script.sh"
 name = "The current time"
 icon = "mdi:clock-outline"
-type = "sensor" 
+type = "sensor"
 ```
 
 The script content:
