@@ -182,7 +182,8 @@ func (k *Kernel) Run(appCtx context.Context) error {
 	// Update device registration data
 	err = k.updateRegistration(ctx, registration)
 	if err != nil {
-		fmt.Errorf("failed to update device registration info: %w", err)
+		// log error and continue, this shouldn't be fatal
+		fmt.Println("failed to update device registration info: %w", err)
 	}
 
 	// Parse all sensors out of the config file and register them in Home Assistant.
