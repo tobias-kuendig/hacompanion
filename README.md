@@ -67,7 +67,7 @@ Documentation=https://github.com/tobias-kuendig/hacompanion
 # After=NetworkManager-wait-online.service
 
 [Service]
-# Load ~/.config/hacompanion/env were you can for example set
+# Load ~/.config/hacompanion/env where you can for example set
 # HASS_TOKEN, HASS_DEVICE_NAME etc.
 EnvironmentFile=%E/hacompanion/env
 # Make sure to set the absolute path to hacompanion correctly below
