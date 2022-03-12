@@ -27,6 +27,20 @@ type RegisterDeviceRequest struct {
 	AppData            AppData `json:"app_data"`
 }
 
+type UpdateRegistrationRequest struct {
+	AppData      AppData `json:"app_data"`
+	AppVersion   string  `json:"app_version"`
+	DeviceName   string  `json:"device_name"`
+	Manufacturer string  `json:"manufacturer"`
+	Model        string  `json:"model"`
+	OsVersion    string  `json:"os_version"`
+}
+
+type updateRegistrationRequestPayload struct {
+	Data UpdateRegistrationRequest `json:"data"`
+	Type string                    `json:"type"`
+}
+
 type AppData struct {
 	PushToken string `json:"push_token"`
 	PushURL   string `json:"push_url"`
@@ -160,6 +174,22 @@ func (api *API) RegisterDevice(ctx context.Context, request RegisterDeviceReques
 	}
 	err = json.Unmarshal(body, &response)
 	return response, err
+}
+
+func (api *API) UpdateRegistration(ctx context.Context, request UpdateRegistrationRequest) error {
+	req := updateRegistrationRequestPayload{
+		Data: request,
+		Type: "update_registration",
+	}
+	j, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+	_, err = api.sendRequest(ctx, api.URL(false), j)
+	if err != nil {
+		_, err = api.sendRequest(ctx, api.URL(true), j)
+	}
+	return err
 }
 
 func (api *API) RegisterSensor(ctx context.Context, data RegisterSensorRequest) error {
