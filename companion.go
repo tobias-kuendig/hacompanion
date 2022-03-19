@@ -72,7 +72,12 @@ func (c *Companion) RunBackgroundProcesses(ctx context.Context, wg *sync.WaitGro
 // UpdateCompanionRunningState updates the companion running state.
 func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.WaitGroup) {
 	update := func(state bool) {
-		err := c.api.UpdateSensorData(context.Background(), []api.UpdateSensorDataRequest{{
+		bgCtx := context.Background()
+		if !state {
+			log.Printf("Invalidating all sensors")
+			c.InvalidateAllSensors(bgCtx)
+		}
+		err := c.api.UpdateSensorData(bgCtx, []api.UpdateSensorDataRequest{{
 			State:    state,
 			Type:     "binary_sensor",
 			Icon:     "mdi:heart-pulse",
@@ -90,4 +95,32 @@ func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.Wa
 	}()
 
 	<-ctx.Done()
+}
+
+func (c *Companion) InvalidateAllSensors(ctx context.Context) {
+	outputs := entity.NewOutputs()
+
+	// Invalidate every registered sensor
+	for _, sensor := range c.sensors {
+		sensor.Invalidate(&outputs)
+	}
+
+	// Build one request to send all updated values to Home Assistant.
+	var data []api.UpdateSensorDataRequest
+	for _, output := range outputs.Data {
+		if output.Payload == nil {
+			continue
+		}
+		data = append(data, api.UpdateSensorDataRequest{
+			Type:     output.Sensor.Type,
+			State:    output.Payload.State,
+			UniqueId: output.Sensor.UniqueID,
+			Icon:     output.Sensor.Icon,
+		})
+	}
+
+	err := c.api.UpdateSensorData(ctx, data)
+	if err != nil {
+		log.Printf("failed to update sensor data: %s", err)
+	}
 }

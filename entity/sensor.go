@@ -65,3 +65,11 @@ func (s Sensor) Update(ctx context.Context, wg *sync.WaitGroup, outputs *Outputs
 	log.Printf("received Payload for %s: %+v", s.UniqueID, value)
 	outputs.Add(Output{Sensor: s, Payload: value})
 }
+
+// Invalidate sensor by settings its state to unavailable
+func (s Sensor) Invalidate(outputs *Outputs) {
+	p := NewPayload()
+	p.State = "unavailable"
+	log.Printf("received p for %s: %+v", s.UniqueID, p)
+	outputs.Add(Output{Sensor: s, Payload: p})
+}
