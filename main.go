@@ -297,6 +297,11 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	id := util.RandomString(8)
 	token := util.RandomString(8)
 
+	pushUrl, err := k.config.GetPushUrl()
+	if err != nil {
+		log.Println("Push notifications will not work with your current config")
+	}
+
 	registration, err := k.api.RegisterDevice(ctx, api.RegisterDeviceRequest{
 		DeviceID:           id,
 		AppID:              "homeassistant-desktop-companion",
@@ -306,7 +311,7 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 		SupportsEncryption: false,
 		AppData: api.AppData{
 			PushToken: token,
-			PushURL:   k.config.Notifications.PushURL,
+			PushURL:   pushUrl,
 		},
 	})
 	if err != nil {
