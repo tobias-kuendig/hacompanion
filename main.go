@@ -16,6 +16,7 @@ import (
 	"os/signal"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"syscall"
@@ -25,7 +26,19 @@ import (
 )
 
 // Version contains the binary's release version.
-var Version = "1.0.0"
+var (
+	AppID        = "homeassistant-desktop-companion"
+	AppName      = "Home Assistant Desktop Companion"
+	Manufacturer = "https://github.com/tobias-kuendig/hacompanion"
+	Model        = "hacompanion"
+	OsName       = runtime.GOOS
+	Version      = "1.0.4"
+	// NOTE for Home Assistant 2022.3.3 and earlier versions:
+	// OsVersion populates the "Firmware" field on the devices page, the
+	// AppVersion is not displayed there. This is why we're construction
+	// OsVersion from both AppVersion and OsName instead of only OsName
+	OsVersion = fmt.Sprintf("%s (%s)", Version, OsName)
+)
 
 // Kernel holds all of the application's dependencies.
 type Kernel struct {
@@ -166,6 +179,13 @@ func (k *Kernel) Run(appCtx context.Context) error {
 	}
 	k.api.Registration = registration
 
+	// Update device registration data
+	err = k.updateRegistration(ctx, registration)
+	if err != nil {
+		// log error and continue, this shouldn't be fatal
+		fmt.Println("failed to update device registration info: %w", err)
+	}
+
 	// Parse all sensors out of the config file and register them in Home Assistant.
 	sensors, err := k.buildSensors(k.config)
 	if err != nil {
@@ -303,16 +323,19 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	}
 
 	registration, err := k.api.RegisterDevice(ctx, api.RegisterDeviceRequest{
-		DeviceID:           id,
-		AppID:              "homeassistant-desktop-companion",
-		AppName:            "Home Assistant Desktop Companion",
-		AppVersion:         Version,
-		DeviceName:         k.api.DeviceName,
-		SupportsEncryption: false,
 		AppData: api.AppData{
 			PushToken: token,
 			PushURL:   pushUrl,
 		},
+		AppID:              AppID,
+		AppName:            AppName,
+		AppVersion:         Version,
+		DeviceID:           id,
+		DeviceName:         k.api.DeviceName,
+		Manufacturer:       Manufacturer,
+		Model:              Model,
+		OsVersion:          OsVersion,
+		SupportsEncryption: false,
 	})
 	if err != nil {
 		return registration, err
@@ -328,6 +351,22 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 		return registration, err
 	}
 	return registration, err
+}
+
+// updateRegistration updates app registration data
+func (k *Kernel) updateRegistration(ctx context.Context, registration api.Registration) error {
+	err := k.api.UpdateRegistration(ctx, api.UpdateRegistrationRequest{
+		AppData: api.AppData{
+			PushToken: registration.PushToken,
+			PushURL:   k.config.Notifications.PushURL,
+		},
+		AppVersion:   Version,
+		DeviceName:   k.api.DeviceName,
+		Manufacturer: Manufacturer,
+		Model:        Model,
+		OsVersion:    OsVersion,
+	})
+	return err
 }
 
 // NullRunner is a Runner that does not do anything.
