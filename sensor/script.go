@@ -56,7 +56,13 @@ func (s Script) Run(ctx context.Context) (*entity.Payload, error) {
 			log.Printf("ignoring custom script line with less than two parts: %s\n", line)
 			continue
 		}
-		p.Attributes[strings.TrimSpace(parts[0])] = strings.TrimSpace(strings.Join(parts[1:], ":"))
+		attrName := strings.TrimSpace(parts[0])
+		attrValue := strings.TrimSpace(strings.Join(parts[1:], ":"))
+		if attrName == "icon" {
+			p.Icon = attrValue
+		} else {
+			p.Attributes[attrName] = attrValue
+		}
 	}
 	return p, nil
 }

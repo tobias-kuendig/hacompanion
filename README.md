@@ -30,7 +30,7 @@ You can download a compiled binary [from the releases page](https://github.com/t
 
 Just download the `_binary` file for your architecture and copy it to `~/.local/bin/hacompanion` (or any other path on your system).
 
-You can now start the companion with the `hacompanion` command. But before doing so, you have to set up 
+You can now start the companion with the `hacompanion` command. But before doing so, you have to set up
 the configuration:
 
 ## Configuration and Setup
@@ -90,6 +90,7 @@ The output of your script has to be as follows:
 
 ```
 my_state_value
+icon:mdi:home-assistant
 custom_attribute_1:value 1
 custom_attribute_2:value 2
 ```
@@ -98,6 +99,7 @@ The above would be translated to the following json payload:
 
 ```json
 {
+  "icon": "mdi:home-assistant",
   "state": "my_state_value",
   "attributes": {
     "custom_attribute_1": "value 1",
@@ -106,7 +108,9 @@ The above would be translated to the following json payload:
 }
 ```
 
-The state (first line) is required. Attributes are optional.
+The state (first line) is required.
+If `icon` is not set then the icon defined in the config file will be used.
+Attributes are optional.
 
 ### Example script
 
@@ -119,7 +123,7 @@ It can be registered like this:
 path = "/path/to/script.sh"
 name = "The current time"
 icon = "mdi:clock-outline"
-type = "sensor" 
+type = "sensor"
 ```
 
 The script content:

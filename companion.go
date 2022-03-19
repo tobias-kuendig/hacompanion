@@ -38,12 +38,16 @@ func (c *Companion) UpdateSensorData(ctx context.Context) {
 		if output.Payload == nil {
 			continue
 		}
+		icon := output.Payload.Icon
+		if icon == "" {
+			icon = output.Sensor.Icon
+		}
 		data = append(data, api.UpdateSensorDataRequest{
 			Type:       output.Sensor.Type,
 			State:      output.Payload.State,
 			Attributes: output.Payload.Attributes,
 			UniqueId:   output.Sensor.UniqueID,
-			Icon:       output.Sensor.Icon,
+			Icon:       icon,
 		})
 	}
 
