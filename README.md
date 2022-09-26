@@ -79,7 +79,7 @@ RestartSec=5
 Type=simple
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
 ```
 
 Start the companion by running:
