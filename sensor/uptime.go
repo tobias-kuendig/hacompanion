@@ -3,7 +3,7 @@ package sensor
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -18,7 +18,7 @@ func NewUptime() *Uptime {
 }
 
 func (u Uptime) Run(ctx context.Context) (*entity.Payload, error) {
-	b, err := ioutil.ReadFile("/proc/uptime")
+	b, err := os.ReadFile("/proc/uptime")
 	if err != nil {
 		return nil, err
 	}

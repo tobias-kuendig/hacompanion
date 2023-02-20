@@ -3,7 +3,7 @@ package sensor
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -21,7 +21,7 @@ func NewMemory() *Memory {
 }
 
 func (m Memory) Run(ctx context.Context) (*entity.Payload, error) {
-	b, err := ioutil.ReadFile("/proc/meminfo")
+	b, err := os.ReadFile("/proc/meminfo")
 	if err != nil {
 		return nil, err
 	}

@@ -3,7 +3,7 @@ package sensor
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 
@@ -18,7 +18,7 @@ func NewLoadAVG() *LoadAVG {
 }
 
 func (w LoadAVG) Run(ctx context.Context) (*entity.Payload, error) {
-	b, err := ioutil.ReadFile("/proc/loadavg")
+	b, err := os.ReadFile("/proc/loadavg")
 	if err != nil {
 		return nil, err
 	}

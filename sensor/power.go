@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -76,7 +75,7 @@ func (pwr Power) Run(ctx context.Context) (*entity.Payload, error) {
 }
 
 func (pwr Power) optimisticRead(file string) string {
-	b, err := ioutil.ReadFile(file)
+	b, err := os.ReadFile(file)
 	if err != nil {
 		return ""
 	}

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -76,7 +76,7 @@ func (c CPUUsage) Run(ctx context.Context) (*entity.Payload, error) {
 	var outputs []string
 	measurements := 2
 	for i := 0; i < measurements; i++ {
-		b, err := ioutil.ReadFile("/proc/stat")
+		b, err := os.ReadFile("/proc/stat")
 		if err != nil {
 			return nil, err
 		}

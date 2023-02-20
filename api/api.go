@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hacompanion/entity"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -150,7 +150,7 @@ func (api *API) sendRequest(ctx context.Context, url string, payload []byte) ([]
 		return nil, err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
