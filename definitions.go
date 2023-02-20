@@ -50,7 +50,6 @@ var sensorDefinitions = map[string]func(m entity.Meta) entity.SensorDefinition{
 			Type:        "sensor",
 			Icon:        "mdi:sort-clock-descending",
 			DeviceClass: "timestamp",
-			Unit:        "ISO8601",
 		}
 	},
 	"load_avg": func(m entity.Meta) entity.SensorDefinition {
