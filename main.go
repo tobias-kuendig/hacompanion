@@ -9,7 +9,6 @@ import (
 	"hacompanion/entity"
 	"hacompanion/sensor"
 	"hacompanion/util"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
@@ -73,7 +72,7 @@ func main() {
 
 	// Try to parse the config file.
 	var config Config
-	b, err := ioutil.ReadFile(configFile.Path)
+	b, err := os.ReadFile(configFile.Path)
 	if err != nil {
 		log.Fatalf("failed to read config file: %s", err)
 	}
@@ -298,7 +297,7 @@ func (k *Kernel) getRegistration(ctx context.Context) (api.Registration, error) 
 	// If there is a registration file available, use it.
 	if err == nil {
 		var b []byte
-		b, err = ioutil.ReadFile(k.config.Companion.RegistrationFile.Path)
+		b, err = os.ReadFile(k.config.Companion.RegistrationFile.Path)
 		if err != nil {
 			return registration, err
 		}
@@ -346,7 +345,7 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	if err != nil {
 		return registration, err
 	}
-	err = ioutil.WriteFile(k.config.Companion.RegistrationFile.Path, j, 0600)
+	err = os.WriteFile(k.config.Companion.RegistrationFile.Path, j, 0600)
 	if err != nil {
 		return registration, err
 	}
