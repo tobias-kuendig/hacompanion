@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"hacompanion/api"
 	"hacompanion/entity"
 	"hacompanion/sensor"
 	"hacompanion/util"
+	"io/fs"
 	"log"
 	"math/rand"
 	"os"
@@ -305,7 +307,7 @@ func (k *Kernel) getRegistration(ctx context.Context) (api.Registration, error) 
 		return registration, err
 	}
 	// Something went wrong, return the error.
-	if !os.IsNotExist(err) {
+	if !errors.Is(err, fs.ErrNotExist) {
 		return registration, err
 	}
 	return k.registerDevice(ctx)
