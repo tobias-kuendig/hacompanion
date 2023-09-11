@@ -44,6 +44,8 @@ func (w LoadAVG) Run(ctx context.Context) (*entity.Payload, error) {
 		case 2:
 			p.Attributes["15m"] = float
 		default:
+			// VSCodium is complaining that this break is ineffective
+			// (doesn't break out of outer loop?)
 			break
 		}
 	}

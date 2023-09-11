@@ -39,7 +39,7 @@ var (
 	OsVersion = fmt.Sprintf("%s (%s)", Version, OsName)
 )
 
-// Kernel holds all of the application's dependencies.
+// Kernel{} holds all of the application's dependencies.
 type Kernel struct {
 	config        *Config
 	api           *api.API
@@ -80,10 +80,10 @@ func main() {
 		log.Fatalf("failed to parse config file: %s", err)
 	}
 
-	// Home Assistant host/url
-	// The --host flag takes precedence the env var
-	// if neither the flag nor the env var are set, use the value from the config
-	// file
+	// Home Assistant Host/URL
+	// The -host flag takes precedence over the env var.
+	// If neither the flag nor the env var are set,
+	// use the value from the config file
 	// Default value: homeassistant.local
 	if hassHost == "" {
 		hassHost = os.Getenv("HASS_HOST")
@@ -96,10 +96,10 @@ func main() {
 		}
 	}
 
-	// Home Assistant token
-	// The --token flag takes precedence the HASS_TOKEN env var
-	// if neither the flag nor the env var are set, use the value in the config
-	// file
+	// Home Assistant Token
+	// The -token flag takes precedence over the HASS_TOKEN env var.
+	// If neither the flag nor the env var are set,
+	// use the value in the config file
 	if hassToken == "" {
 		hassToken = os.Getenv("HASS_TOKEN")
 		if hassToken == "" {
@@ -107,10 +107,10 @@ func main() {
 		}
 	}
 
-	// device name
-	// The --device-name flag takes precedence the HASS_TOKEN env var
-	// if neither the flag nor the env var are set, use the value in the config
-	// file
+	// Device Name
+	// The -device-name flag takes precedence the HASS_TOKEN env var.
+	// If neither the flag nor the env var are set,
+	// use the value in the config file
 	// Default value: current hostname
 	if deviceName == "" {
 		deviceName = os.Getenv("HASS_DEVICE_NAME")
@@ -119,7 +119,7 @@ func main() {
 			deviceName = config.HomeAssistant.DeviceName
 		}
 		if deviceName == "" {
-			// Fall back to system hostname if device name is unset in config
+			// Fall back to system hostname if device name is unset in config.
 			hostname, err := os.Hostname()
 			if err != nil {
 				log.Fatalf("failed to determine hostname: %s. Please set device name via HASS_DEVICE_NAME or the config file", err)
@@ -161,9 +161,9 @@ func main() {
 	}
 }
 
-// Run runs the application.
+// Run() runs the application.
 func (k *Kernel) Run(appCtx context.Context) error {
-	log.Printf("Starting companion version %s", Version)
+	log.Printf("Starting Desktop Companion version %s", Version)
 	// Create a global application context that is later used for proper shutdowns.
 	ctx, cancel := context.WithCancel(appCtx)
 	k.ctxCancel = cancel
@@ -178,10 +178,10 @@ func (k *Kernel) Run(appCtx context.Context) error {
 	}
 	k.api.Registration = registration
 
-	// Update device registration data
+	// Update device registration data.
 	err = k.updateRegistration(ctx, registration)
 	if err != nil {
-		// log error and continue, this shouldn't be fatal
+		// Just log error and continue, this shouldn't be fatal.
 		fmt.Println("failed to update device registration info: %w", err)
 	}
 
@@ -199,7 +199,7 @@ func (k *Kernel) Run(appCtx context.Context) error {
 	k.notifications = NewNotificationServer(registration, k.config.Notifications.Listen)
 	go k.notifications.Listen(ctx)
 
-	// The Companion gathers sensor data and forwards it to Home Assistant.
+	// Gathers sensor data and forwards it to Home Assistant.
 	c := NewCompanion(k.api, sensors)
 
 	// Start the background processes.
@@ -223,7 +223,7 @@ func (k *Kernel) Run(appCtx context.Context) error {
 	}
 }
 
-// Shutdown shuts down the main routine gracefully.
+// Shutdown() shuts down the main routine gracefully.
 func (k *Kernel) Shutdown(ctx context.Context) error {
 	// Cancel global context, then wait for all background processes to quit.
 	k.ctxCancel()
@@ -239,7 +239,8 @@ func (k *Kernel) Shutdown(ctx context.Context) error {
 		return fmt.Errorf("server shutdown error: %w", err)
 	}
 
-	// Wait for either everything to shut down properly or the the timeout of the context to exceed.
+	// Wait for either everything to shut down properly
+	// or the context timeout to be reached.
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -250,7 +251,7 @@ func (k *Kernel) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-// buildSensor returns a slice of concrete Sensor types based on the configuration.
+// buildSensors() returns a slice of concrete Sensor types based on the configuration.
 func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
 	var sensors []entity.Sensor
 	// Parse default sensor configuration.
@@ -288,8 +289,8 @@ func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
 	return sensors, nil
 }
 
-// getRegistration tries to read an existing Home Assistant device registration.
-// If it does not exist, it register a new device with Home Assistant.
+// getRegistration() tries to read an existing Home Assistant device registration.
+// If it does not exist, it registers a new device with Home Assistant.
 func (k *Kernel) getRegistration(ctx context.Context) (api.Registration, error) {
 	var registration api.Registration
 	var err error
@@ -301,6 +302,8 @@ func (k *Kernel) getRegistration(ctx context.Context) (api.Registration, error) 
 		if err != nil {
 			return registration, err
 		}
+		// TODO: Try to register device in the case of invalid json (e.g. empty/corrupted file),
+		// rather than simply returning the error
 		err = json.Unmarshal(b, &registration)
 		return registration, err
 	}
@@ -308,10 +311,11 @@ func (k *Kernel) getRegistration(ctx context.Context) (api.Registration, error) 
 	if !os.IsNotExist(err) {
 		return registration, err
 	}
+	// No registration file found, try to register device.
 	return k.registerDevice(ctx)
 }
 
-// registerDevices registers a new device with Home Assistant.
+// registerDevice() registers a new device with Home Assistant.
 func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	id := util.RandomString(8)
 	token := util.RandomString(8)
@@ -352,7 +356,7 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	return registration, err
 }
 
-// updateRegistration updates app registration data
+// updateRegistration() updates app registration data
 func (k *Kernel) updateRegistration(ctx context.Context, registration api.Registration) error {
 	pushUrl, err := k.config.GetPushUrl()
 	if err != nil {
@@ -372,12 +376,12 @@ func (k *Kernel) updateRegistration(ctx context.Context, registration api.Regist
 	return err
 }
 
-// NullRunner is a Runner that does not do anything.
+// NullRunner{} is a Runner that does not do anything.
 type NullRunner struct{}
 
 func (n NullRunner) Run(ctx context.Context) (*entity.Payload, error) { return nil, nil }
 
-// duration is used to unmarshal text durations into a time.Duration.
+// duration{} is used to unmarshal text durations into a time.Duration.
 type duration struct {
 	time.Duration
 }
@@ -388,7 +392,7 @@ func (d *duration) UnmarshalText(text []byte) error {
 	return err
 }
 
-// homePath enables support for ~/home/paths.
+// homePath{} enables support for ~/home/paths.
 type homePath struct {
 	Path string
 }
