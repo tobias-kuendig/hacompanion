@@ -7,7 +7,7 @@ import (
 	"net"
 )
 
-// Config{} contains all values from the configuration file.
+// Config contains all values from the configuration file.
 type Config struct {
 	HomeAssistant homeassistantConfig            `toml:"homeassistant"`
 	Companion     companionConfig                `toml:"companion"`
@@ -44,7 +44,7 @@ func getLocalIp() (string, error) {
 	return localAddr.IP.String(), nil
 }
 
-// GetPushUrl() returns the pushUrl if set in the config or tries to guess it.
+// GetPushUrl returns the pushUrl if set in the config or tries to guess it.
 func (c Config) GetPushUrl() (string, error) {
 	// Use whatever is set in the config file if set
 	if c.Notifications.PushURL != "" {

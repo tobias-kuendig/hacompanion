@@ -41,7 +41,7 @@ var (
 	OsVersion = fmt.Sprintf("%s (%s)", Version, OsName)
 )
 
-// Kernel{} holds all of the application's dependencies.
+// Kernel holds all of the application's dependencies.
 type Kernel struct {
 	config        *Config
 	api           *api.API
@@ -163,7 +163,7 @@ func main() {
 	}
 }
 
-// Run() runs the application.
+// Run runs the application.
 func (k *Kernel) Run(appCtx context.Context) error {
 	log.Printf("Starting Desktop Companion version %s", Version)
 	// Create a global application context that is later used for proper shutdowns.
@@ -225,7 +225,7 @@ func (k *Kernel) Run(appCtx context.Context) error {
 	}
 }
 
-// Shutdown() shuts down the main routine gracefully.
+// Shutdown shuts down the main routine gracefully.
 func (k *Kernel) Shutdown(ctx context.Context) error {
 	// Cancel global context, then wait for all background processes to quit.
 	k.ctxCancel()
@@ -253,7 +253,7 @@ func (k *Kernel) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-// buildSensors() returns a slice of concrete Sensor types based on the configuration.
+// buildSensors returns a slice of concrete Sensor types based on the configuration.
 func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
 	var sensors []entity.Sensor
 	// Parse default sensor configuration.
@@ -291,7 +291,7 @@ func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
 	return sensors, nil
 }
 
-// getRegistration() tries to read an existing Home Assistant device registration.
+// getRegistration tries to read an existing Home Assistant device registration.
 // If it does not exist, it registers a new device with Home Assistant.
 func (k *Kernel) getRegistration(ctx context.Context) (api.Registration, error) {
 	var registration api.Registration
@@ -317,7 +317,7 @@ func (k *Kernel) getRegistration(ctx context.Context) (api.Registration, error) 
 	return k.registerDevice(ctx)
 }
 
-// registerDevice() registers a new device with Home Assistant.
+// registerDevice registers a new device with Home Assistant.
 func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	id := util.RandomString(8)
 	token := util.RandomString(8)
@@ -362,7 +362,7 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	return registration, err
 }
 
-// updateRegistration() updates app registration data
+// updateRegistration updates app registration data
 func (k *Kernel) updateRegistration(ctx context.Context, registration api.Registration) error {
 	pushUrl, err := k.config.GetPushUrl()
 	if err != nil {
@@ -382,12 +382,12 @@ func (k *Kernel) updateRegistration(ctx context.Context, registration api.Regist
 	return err
 }
 
-// NullRunner{} is a Runner that does not do anything.
+// NullRunner is a Runner that does not do anything.
 type NullRunner struct{}
 
 func (n NullRunner) Run(ctx context.Context) (*entity.Payload, error) { return nil, nil }
 
-// duration{} is used to unmarshal text durations into a time.Duration.
+// duration is used to unmarshal text durations into a time.Duration.
 type duration struct {
 	time.Duration
 }
@@ -398,7 +398,7 @@ func (d *duration) UnmarshalText(text []byte) error {
 	return err
 }
 
-// homePath{} enables support for ~/home/paths.
+// homePath enables support for ~/home/paths.
 type homePath struct {
 	Path string
 }
