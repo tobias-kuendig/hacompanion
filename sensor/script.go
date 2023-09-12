@@ -41,9 +41,9 @@ func (s Script) Run(ctx context.Context) (*entity.Payload, error) {
 		if n == 1 {
 			if s.cfg.Type == "binary_sensor" {
 				// Convert string to bool for a binary sensor.
-				line_lower := strings.ToLower(line)
+				lineLower := strings.ToLower(line)
 				strtobool := map[string]bool{"on": true, "true": true, "yes": true}
-				p.State = strtobool[line_lower]
+				p.State = strtobool[lineLower]
 			} else {
 				// No conversion needed for a regular sensor.
 				p.State = line

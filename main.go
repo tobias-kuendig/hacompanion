@@ -330,7 +330,7 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	id := util.RandomString(8)
 	token := util.RandomString(8)
 
-	pushUrl, err := k.config.GetPushUrl()
+	pushURL, err := k.config.GetPushURL()
 	if err != nil {
 		log.Println("Push notifications will not work with your current config")
 	}
@@ -338,7 +338,7 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	registration, err := k.api.RegisterDevice(ctx, api.RegisterDeviceRequest{
 		AppData: api.AppData{
 			PushToken: token,
-			PushURL:   pushUrl,
+			PushURL:   pushURL,
 		},
 		AppID:              AppID,
 		AppName:            AppName,
@@ -372,14 +372,14 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 
 // updateRegistration updates app registration data.
 func (k *Kernel) updateRegistration(ctx context.Context, registration api.Registration) error {
-	pushUrl, err := k.config.GetPushUrl()
+	pushURL, err := k.config.GetPushURL()
 	if err != nil {
 		log.Println("Push notifications will not work with your current config")
 	}
 	err = k.api.UpdateRegistration(ctx, api.UpdateRegistrationRequest{
 		AppData: api.AppData{
 			PushToken: registration.PushToken,
-			PushURL:   pushUrl,
+			PushURL:   pushURL,
 		},
 		AppVersion:   Version,
 		DeviceName:   k.api.DeviceName,

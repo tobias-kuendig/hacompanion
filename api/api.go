@@ -53,7 +53,7 @@ type RegisterSensorRequest struct {
 	Name              string            `json:"name"`
 	State             string            `json:"state,omitempty"`
 	Type              string            `json:"type"`
-	UniqueId          string            `json:"unique_id"`
+	UniqueID          string            `json:"unique_id"`
 	UnitOfMeasurement string            `json:"unit_of_measurement"`
 }
 
@@ -67,7 +67,7 @@ type UpdateSensorDataRequest struct {
 	Icon       string                 `json:"icon"`
 	State      interface{}            `json:"state"`
 	Type       string                 `json:"type"`
-	UniqueId   string                 `json:"unique_id"`
+	UniqueID   string                 `json:"unique_id"`
 }
 
 type updateSensorRequestPayload struct {
@@ -240,7 +240,7 @@ func (api *API) RegisterSensors(ctx context.Context, sensors []entity.Sensor) er
 			DeviceClass:       sensor.DeviceClass,
 			Icon:              sensor.Icon,
 			Name:              sensor.Name,
-			UniqueId:          sensor.UniqueID,
+			UniqueID:          sensor.UniqueID,
 			UnitOfMeasurement: sensor.Unit,
 		})
 		if err != nil {

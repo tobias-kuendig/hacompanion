@@ -46,7 +46,7 @@ func (c *Companion) UpdateSensorData(ctx context.Context) {
 			Type:       output.Sensor.Type,
 			State:      output.Payload.State,
 			Attributes: output.Payload.Attributes,
-			UniqueId:   output.Sensor.UniqueID,
+			UniqueID:   output.Sensor.UniqueID,
 			Icon:       icon,
 		})
 	}
@@ -81,7 +81,7 @@ func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.Wa
 			State:    state,
 			Type:     "binary_sensor",
 			Icon:     "mdi:heart-pulse",
-			UniqueId: "companion_running",
+			UniqueID: "companion_running",
 		}})
 		if err != nil {
 			log.Printf("failed to update companion_running state: %s", err)
@@ -114,7 +114,7 @@ func (c *Companion) InvalidateAllSensors(ctx context.Context) {
 		data = append(data, api.UpdateSensorDataRequest{
 			Type:     output.Sensor.Type,
 			State:    output.Payload.State,
-			UniqueId: output.Sensor.UniqueID,
+			UniqueID: output.Sensor.UniqueID,
 			Icon:     output.Sensor.Icon,
 		})
 	}
