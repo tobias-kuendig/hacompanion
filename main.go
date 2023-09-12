@@ -33,7 +33,7 @@ var (
 	Manufacturer = "https://github.com/tobias-kuendig/hacompanion"
 	Model        = "hacompanion"
 	OsName       = runtime.GOOS
-	Version      = "1.0.4"
+	Version      = "1.0.8"
 	// NOTE for Home Assistant 2022.3.3 and earlier versions:
 	// OsVersion populates the "Firmware" field on the devices page, the
 	// AppVersion is not displayed there. This is why we're construction
