@@ -7,12 +7,12 @@ import (
 	"sync"
 )
 
-// Runner{} is used to gather data of any kind.
+// Runner is used to gather data of any kind.
 type Runner interface {
 	Run(ctx context.Context) (*Payload, error)
 }
 
-// SensorDefinition{} contains all Home Assistant attributes.
+// SensorDefinition contains all Home Assistant attributes.
 type SensorDefinition struct {
 	Type        string
 	Runner      func(Meta) Runner
@@ -21,14 +21,14 @@ type SensorDefinition struct {
 	Unit        string
 }
 
-// SensorConfig{} contains the configuration for a single sensor.
+// SensorConfig contains the configuration for a single sensor.
 type SensorConfig struct {
 	Enabled bool
 	Name    string
 	Meta    map[string]interface{}
 }
 
-// ScriptConfig{} contains the definition of a custom script sensor.
+// ScriptConfig contains the definition of a custom script sensor.
 type ScriptConfig struct {
 	Path              string
 	Name              string
@@ -38,7 +38,7 @@ type ScriptConfig struct {
 	DeviceClass       string `toml:"device_class"`
 }
 
-// Sensor{} is a concrete instance of a sensor defined in the config file.
+// Sensor is a concrete instance of a sensor defined in the config file.
 // Its Runner is run to gather data.
 type Sensor struct {
 	Type        string
@@ -54,7 +54,7 @@ func (s Sensor) String() string {
 	return fmt.Sprintf("%s (%s)", s.Name, s.UniqueID)
 }
 
-// Update() runs a Sensor's Runner and returns the outputs.
+// Update runs a Sensor's Runner and returns the outputs.
 func (s Sensor) Update(ctx context.Context, wg *sync.WaitGroup, outputs *Outputs) {
 	defer wg.Done()
 	value, err := s.Runner.Run(ctx)
@@ -66,7 +66,7 @@ func (s Sensor) Update(ctx context.Context, wg *sync.WaitGroup, outputs *Outputs
 	outputs.Add(Output{Sensor: s, Payload: value})
 }
 
-// Invalidate() sets stale sensor states to unavailable
+// Invalidate sets the state of the given sensor(s) to unavailable.
 func (s Sensor) Invalidate(outputs *Outputs) {
 	p := NewPayload()
 	p.State = "unavailable"

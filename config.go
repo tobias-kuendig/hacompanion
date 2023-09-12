@@ -33,7 +33,7 @@ type notificationsConfig struct {
 }
 
 func getLocalIp() (string, error) {
-	// Credit: https://gist.github.com/jniltinho/9787946?permalink_comment_id=2243615#gistcomment-2243615
+	// [Source]: https://gist.github.com/jniltinho/9787946?permalink_comment_id=2243615#gistcomment-2243615
 	conn, err := net.Dial("udp", "1.1.1.1:80")
 	if err != nil {
 		return "", err
@@ -44,9 +44,8 @@ func getLocalIp() (string, error) {
 	return localAddr.IP.String(), nil
 }
 
-// GetPushUrl() returns the pushUrl if set in the config or tries to guess it.
+// GetPushUrl returns the pushUrl if set in the config, and if not tries to guess it.
 func (c Config) GetPushUrl() (string, error) {
-	// Use whatever is set in the config file if set
 	if c.Notifications.PushURL != "" {
 		return c.Notifications.PushURL, nil
 	}

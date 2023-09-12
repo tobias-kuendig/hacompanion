@@ -41,7 +41,7 @@ func (m Memory) process(output string) (*entity.Payload, error) {
 		if err != nil {
 			continue
 		}
-		// convert kb to MB
+		// Convert kb to MB.
 		mb := util.RoundToTwoDecimals(float64(kb) / 1024)
 		switch strings.TrimSpace(match[1]) {
 		case "MemFree":
@@ -57,7 +57,7 @@ func (m Memory) process(output string) (*entity.Payload, error) {
 		}
 	}
 	if p.State == "" {
-		return nil, fmt.Errorf("could not detrmine memory state based on /proc/meminfo: %s", output)
+		return nil, fmt.Errorf("could not determine memory state based on /proc/meminfo: %s", output)
 	}
 	return p, nil
 }

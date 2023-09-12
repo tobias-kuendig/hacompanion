@@ -16,7 +16,9 @@ import (
 )
 
 var (
-	reCPUTemp  = regexp.MustCompile(`(?m)(Package id|Core \d)[\s\d]*:\s+.?([\d\.]+)°`)
+	reCPUTemp = regexp.MustCompile(`(?m)(temp1|Package id|Core \d)[\s\d]*:\s+.?([\d\.]+)°`)
+	// This is currently unused.
+	//reCPUTemp2 = regexp.MustCompile(`(?mi)^\s?(?P<name>[^:]+):\s+(?P<value>\d+)`)
 	reCPUUsage = regexp.MustCompile(`(?m)^\s*cpu(\d+)?.*`)
 )
 
@@ -98,7 +100,7 @@ func (c CPUUsage) process(outputs []string) (*entity.Payload, error) {
 	// Parse out the usage deltas from the stats output.
 	stats := map[string][]stat{}
 	for i, output := range outputs {
-		// Returns measurement for a single core.
+		// Return a measurement for a single core.
 		matches := reCPUUsage.FindAllStringSubmatch(output, -1)
 		for _, submatch := range matches {
 			match := strings.TrimSpace(submatch[0])
@@ -130,7 +132,7 @@ func (c CPUUsage) process(outputs []string) (*entity.Payload, error) {
 			}
 		}
 	}
-	// Calculate the percentage values per core.
+	// Calculate the usage per core as a percentage.
 	for cpu, value := range stats {
 		u := value[1].usage - value[0].usage
 		t := value[1].total - value[0].total

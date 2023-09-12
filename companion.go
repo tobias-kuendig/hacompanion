@@ -69,7 +69,7 @@ func (c *Companion) RunBackgroundProcesses(ctx context.Context, wg *sync.WaitGro
 	processWg.Wait()
 }
 
-// UpdateCompanionRunningState() updates the Companion running state.
+// UpdateCompanionRunningState updates the Companion running state.
 func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.WaitGroup) {
 	update := func(state bool) {
 		bgCtx := context.Background()
@@ -100,7 +100,7 @@ func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.Wa
 func (c *Companion) InvalidateAllSensors(ctx context.Context) {
 	outputs := entity.NewOutputs()
 
-	// Invalidate every registered sensor
+	// Invalidate every registered sensor.
 	for _, sensor := range c.sensors {
 		sensor.Invalidate(&outputs)
 	}
