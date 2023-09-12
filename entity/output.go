@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-// Output{} is the resulting value of a Sensor that was run.
+// Output is the resulting value of a Sensor that was run.
 type Output struct {
 	Payload *Payload
 	Sensor  Sensor

@@ -7,7 +7,7 @@ import (
 	"net"
 )
 
-// Config{} contains all values from the configuration file.
+// Config contains all values from the configuration file.
 type Config struct {
 	HomeAssistant homeassistantConfig            `toml:"homeassistant"`
 	Companion     companionConfig                `toml:"companion"`

@@ -57,7 +57,7 @@ func (c *Companion) UpdateSensorData(ctx context.Context) {
 	}
 }
 
-// RunBackgroundProcesses() starts all background processes.
+// RunBackgroundProcesses starts all background processes.
 func (c *Companion) RunBackgroundProcesses(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 

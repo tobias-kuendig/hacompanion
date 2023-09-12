@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"hacompanion/api"
 	"hacompanion/entity"
 	"hacompanion/sensor"
 	"hacompanion/util"
+	"io/fs"
 	"log"
 	"math/rand"
 	"os"
@@ -30,8 +32,7 @@ var (
 	Manufacturer = "https://github.com/tobias-kuendig/hacompanion"
 	Model        = "hacompanion"
 	OsName       = runtime.GOOS
-	// Version contains the binary's release version.
-	Version = "1.0.4"
+	Version      = "1.0.8"
 	// NOTE for Home Assistant 2022.3.3 and earlier versions:
 	// Because OsVersion populates the "Firmware" field on the devices page
 	// and the Companion version is not displayed there otherwise,
@@ -260,7 +261,7 @@ func (k *Kernel) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-// buildSensor returns a slice of concrete Sensor types based on the configuration.
+// buildSensors returns a slice of concrete Sensor types based on the configuration.
 func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
 	var sensors []entity.Sensor
 	// Parse default sensor configuration.
@@ -317,7 +318,7 @@ func (k *Kernel) getRegistration(ctx context.Context) (api.Registration, error) 
 		return registration, err
 	}
 	// Something went wrong, return the error.
-	if !os.IsNotExist(err) {
+	if !errors.Is(err, fs.ErrNotExist) {
 		return registration, err
 	}
 	// No registration file found, try to register device.
@@ -355,6 +356,10 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	registration.PushToken = token
 	// Parse the response and save it to the filesystem.
 	j, err := registration.JSON()
+	if err != nil {
+		return registration, err
+	}
+	err = os.MkdirAll(filepath.Dir(k.config.Companion.RegistrationFile.Path), 0700)
 	if err != nil {
 		return registration, err
 	}
