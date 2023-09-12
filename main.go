@@ -345,6 +345,10 @@ func (k *Kernel) registerDevice(ctx context.Context) (api.Registration, error) {
 	if err != nil {
 		return registration, err
 	}
+	err = os.MkdirAll(filepath.Dir(k.config.Companion.RegistrationFile.Path), 0700)
+	if err != nil {
+		return registration, err
+	}
 	err = os.WriteFile(k.config.Companion.RegistrationFile.Path, j, 0600)
 	if err != nil {
 		return registration, err
