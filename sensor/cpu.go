@@ -95,10 +95,10 @@ func (c CPUUsage) process(outputs []string) (*entity.Payload, error) {
 		usage float64
 		total float64
 	}
-	// Parse the usage deltas out form the stats output.
+	// Parse out the usage deltas from the stats output.
 	stats := map[string][]stat{}
 	for i, output := range outputs {
-		// Returns a single cpu core measurement
+		// Returns measurement for a single core.
 		matches := reCPUUsage.FindAllStringSubmatch(output, -1)
 		for _, submatch := range matches {
 			match := strings.TrimSpace(submatch[0])
@@ -106,7 +106,7 @@ func (c CPUUsage) process(outputs []string) (*entity.Payload, error) {
 			if len(submatch) > 1 {
 				cpu = strings.TrimSpace(submatch[1])
 			}
-			// Fetch the relevant values, convert them to floats.
+			// Fetch the relevant values and convert them to floats.
 			fields := strings.Fields(match)
 			user, err := strconv.ParseFloat(fields[1], 64)
 			if err != nil {

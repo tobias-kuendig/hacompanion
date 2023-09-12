@@ -232,7 +232,7 @@ func (api *API) UpdateSensorData(ctx context.Context, data []UpdateSensorDataReq
 	return err
 }
 
-// RegisterSensors register's a slice of sensors in Home Assistant.
+// RegisterSensors() registers a slice of sensors in Home Assistant.
 func (api *API) RegisterSensors(ctx context.Context, sensors []entity.Sensor) error {
 	for _, sensor := range sensors {
 		err := api.RegisterSensor(ctx, RegisterSensorRequest{
