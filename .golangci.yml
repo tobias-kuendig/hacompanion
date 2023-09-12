@@ -1,6 +1,79 @@
-run:
-  timeout: 1m
+linters-settings:
+  govet:
+    check-shadowing: true
+  maligned:
+    suggest-new: true
+  misspell:
+    locale: US
+  gosec:
+    excludes:
+      - G602
+  goimports:
+    local-prefixes: caresuite
+  gocritic:
+    enabled-tags:
+    - diagnostic
+    - performance
+    - style
+    - experimental
+    disabled-checks:
+    - hugeParam
+    - whyNoLint
+    - typeDefFirst
+    - unnecessaryBlock
+  revive:
+    rules:
+      - name: unused-parameter
+        disabled: true
 
 linters:
-  disable:
-    - gomnd
+  disable-all: true
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - decorder
+    - dogsled
+    - durationcheck
+    - errcheck
+    - errorlint
+    - execinquery
+    - exportloopref
+    - gochecknoinits
+    - gofmt
+    - goheader
+    - goimports
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - grouper
+    - importas
+    - logrlint
+    - makezero
+    - misspell
+    - nakedret
+    - nestif
+    - nilerr
+    - noctx
+    - nolintlint
+    - nosprintfhostport
+    - predeclared
+    - promlinter
+    - reassign
+    - revive
+    - rowserrcheck
+    - staticcheck
+    - stylecheck
+    - tenv
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - wastedassign
+    - whitespace
+
