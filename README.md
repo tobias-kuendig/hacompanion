@@ -30,6 +30,11 @@ You can download a compiled binary [from the releases page](https://github.com/t
 
 Just download the `_binary` file for your architecture and copy it to `~/.local/bin/hacompanion` (or any other path on your system).
 
+Arch Linux users have the option to install the binary as an AUR package. Eg:
+```
+yay -Sy hacompanion
+```
+
 You can now start the companion with the `hacompanion` command. But before doing so, you have to set up
 the configuration:
 
