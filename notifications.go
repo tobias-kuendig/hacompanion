@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os/exec"
 	"strconv"
+	"time"
 
 	"hacompanion/api"
 	"hacompanion/util"
@@ -30,6 +31,11 @@ func NewNotificationServer(registration api.Registration, address string) *Notif
 	s.Server = &http.Server{
 		Addr:    s.address,
 		Handler: s.mux,
+		// Set some reasonable timeouts, mostly to resolve linter
+		// warnings about the potential for a slowloris DoS.
+		ReadHeaderTimeout: time.Duration(10) * time.Second,
+		ReadTimeout:       time.Duration(20) * time.Second,
+		WriteTimeout:      time.Duration(20) * time.Second,
 	}
 	return s
 }
@@ -57,7 +63,7 @@ func (s NotificationServer) Listen(ctx context.Context) {
 			return
 		}
 		log.Println("notification sent successfully")
-		w.WriteHeader(201)
+		w.WriteHeader(http.StatusCreated)
 		util.RespondSuccess(w)
 	})
 

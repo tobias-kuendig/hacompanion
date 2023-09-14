@@ -66,7 +66,7 @@ func (s Sensor) Update(ctx context.Context, wg *sync.WaitGroup, outputs *Outputs
 	outputs.Add(Output{Sensor: s, Payload: value})
 }
 
-// Invalidate sets stale sensor states to unavailable
+// Invalidate sets the state of the given sensor(s) to unavailable.
 func (s Sensor) Invalidate(outputs *Outputs) {
 	p := NewPayload()
 	p.State = "unavailable"

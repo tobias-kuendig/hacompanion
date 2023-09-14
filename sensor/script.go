@@ -37,20 +37,20 @@ func (s Script) Run(ctx context.Context) (*entity.Payload, error) {
 	for sc.Scan() {
 		n++
 		line := strings.TrimSpace(sc.Text())
-		// First line has to contain state.
+		// Read in first line as the state.
 		if n == 1 {
 			if s.cfg.Type == "binary_sensor" {
-				// Binary sensor -> convert string to bool
-				line_lower := strings.ToLower(line)
+				// Convert string to bool for a binary sensor.
+				lineLower := strings.ToLower(line)
 				strtobool := map[string]bool{"on": true, "true": true, "yes": true}
-				p.State = strtobool[line_lower]
+				p.State = strtobool[lineLower]
 			} else {
-				// Regular sensor
+				// No conversion needed for a regular sensor.
 				p.State = line
 			}
 			continue
 		}
-		// Other lines are attributes.
+		// Read in any additional lines as attributes.
 		parts := strings.Split(line, ":")
 		if len(parts) < 2 {
 			log.Printf("ignoring custom script line with less than two parts: %s\n", line)

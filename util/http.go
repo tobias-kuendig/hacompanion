@@ -6,8 +6,9 @@ import (
 	"net/http"
 )
 
-// RespondError return a JSON error response.
-// nolint:errcheck
+// RespondError returns a JSON error response.
+//
+//nolint:errcheck
 func RespondError(w http.ResponseWriter, error string, status int) {
 	var resp struct {
 		Error string `json:"errorMessage"`
@@ -22,9 +23,11 @@ func RespondError(w http.ResponseWriter, error string, status int) {
 	w.Write(b)
 }
 
-// Home Assistant errors without a rateLimits response.
-// There is no rate limiting implemented on our side so we return a dummy response.
-// nolint:errcheck
+// Because Home Assistant errors without a rateLimits response and
+// there is no rate limiting implemented on our side, we return a
+// dummy response with RespondSuccess.
+//
+//nolint:errcheck
 func RespondSuccess(w http.ResponseWriter) {
 	w.Write([]byte(`
 		{
