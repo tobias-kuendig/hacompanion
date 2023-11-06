@@ -40,7 +40,7 @@ func NewNotificationServer(registration api.Registration, address string) *Notif
 	return s
 }
 
-func (s NotificationServer) Listen(ctx context.Context) {
+func (s NotificationServer) Listen(_ context.Context) {
 	s.mux.HandleFunc("/notifications", func(w http.ResponseWriter, r *http.Request) {
 		var notification Notification
 		var req api.PushNotificationRequest

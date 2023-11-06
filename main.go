@@ -130,9 +130,9 @@ func main() {
 			deviceName = config.HomeAssistant.DeviceName
 		}
 		if deviceName == "" {
-			hostname, err := os.Hostname()
-			if err != nil {
-				log.Fatalf("failed to determine hostname: %s. Please set device name via HASS_DEVICE_NAME or the config file", err)
+			hostname, hostnameErr := os.Hostname()
+			if hostnameErr != nil {
+				log.Fatalf("failed to determine hostname: %s. Please set device name via HASS_DEVICE_NAME or the config file", hostnameErr)
 			}
 
 			deviceName = hostname
@@ -220,7 +220,7 @@ func (k *Kernel) Run(appCtx context.Context) error {
 	c.UpdateSensorData(ctx)
 
 	// Keep updating the sensor data in a regular interval,
-	// until the application context gets cancelled.
+	// until the application context gets canceled.
 	t := time.NewTicker(k.config.Companion.UpdateInterval.Duration)
 
 	for {
