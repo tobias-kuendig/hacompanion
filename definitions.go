@@ -8,9 +8,9 @@ import (
 // sensorDefinitions is used to map the configuration to internal types.
 var sensorDefinitions = map[string]func(m entity.Meta) entity.SensorDefinition{
 	"cpu_temp": func(m entity.Meta) entity.SensorDefinition {
-		unit := "C"
+		unit := "°C"
 		if !m.GetBool("celsius") {
-			unit = "F"
+			unit = "°F"
 		}
 		return entity.SensorDefinition{
 			Type:        "sensor",
