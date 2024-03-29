@@ -88,9 +88,9 @@ type PushNotificationRequest struct {
 	Title            string `json:"title"`
 	PushToken        string `json:"push_token"`
 	RegistrationInfo struct {
-		AppId      string `json:"app_id"`
+		AppID      string `json:"app_id"`
 		AppVersion string `json:"app_version"`
-		OsVersion  string `json:"os_version"`
+		OSVersion  string `json:"os_version"`
 	} `json:"registration_info"`
 	Data PushNotificationData `json:"data"`
 }

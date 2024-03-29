@@ -2,6 +2,7 @@ package sensor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os/exec"
@@ -46,6 +47,7 @@ func (o OnlineCheck) Run(ctx context.Context) (*entity.Payload, error) {
 	}
 }
 
+//nolint:nilerr
 func (o OnlineCheck) checkHTTP(ctx context.Context) (*entity.Payload, error) {
 	p := entity.NewPayload()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, o.target, nil)
@@ -61,6 +63,8 @@ func (o OnlineCheck) checkHTTP(ctx context.Context) (*entity.Payload, error) {
 		return p, nil
 	}
 
+	defer resp.Body.Close()
+
 	p.State = true
 	p.Attributes["status"] = resp.Status
 
@@ -69,14 +73,14 @@ func (o OnlineCheck) checkHTTP(ctx context.Context) (*entity.Payload, error) {
 
 func (o OnlineCheck) checkPing(ctx context.Context) (*entity.Payload, error) {
 	p := entity.NewPayload()
+	//nolint:gosec
 	cmd := exec.CommandContext(ctx, "ping", "-c 2", "-w 4", o.target)
 	err := cmd.Run()
 	if err != nil {
 		p.State = false
-		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 1 {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
 			p.Attributes["err"] = fmt.Sprintf("could not reach %s", o.target)
-		} else {
-			p.Attributes["err"] = fmt.Sprintf("failed to execute ping: %s", err)
 		}
 		return p, nil
 	}

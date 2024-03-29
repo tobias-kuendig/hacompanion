@@ -9,11 +9,11 @@ import (
 // RespondError returns a JSON error response.
 //
 //nolint:errcheck
-func RespondError(w http.ResponseWriter, error string, status int) {
+func RespondError(w http.ResponseWriter, msg string, status int) {
 	var resp struct {
 		Error string `json:"errorMessage"`
 	}
-	resp.Error = error
+	resp.Error = msg
 	b, err := json.Marshal(resp)
 	if err != nil {
 		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, string(b))))

@@ -25,6 +25,7 @@ func (s Script) Run(ctx context.Context) (*entity.Payload, error) {
 	var out bytes.Buffer
 
 	// Call the custom script.
+	//nolint:gosec
 	cmd := exec.CommandContext(ctx, s.cfg.Path)
 	cmd.Stdout = &out
 	if err = cmd.Run(); err != nil {

@@ -33,7 +33,7 @@ func (u Uptime) process(output string) (*entity.Payload, error) {
 	}
 	seconds, err := strconv.ParseFloat(parts[0], 64)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse seconds from /proc/uptime (%s): %s", output, err)
+		return nil, fmt.Errorf("failed to parse seconds from /proc/uptime (%s): %w", output, err)
 	}
 
 	p.State = time.Now().Add(-time.Second * time.Duration(seconds)).Format(time.RFC3339)

@@ -3,8 +3,9 @@ package sensor
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	"hacompanion/entity"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCPUUsage(t *testing.T) {

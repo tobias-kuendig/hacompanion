@@ -27,11 +27,11 @@ func (pwr Power) Run(ctx context.Context) (*entity.Payload, error) {
 	dir := fmt.Sprintf("/sys/class/power_supply/%s", pwr.Battery)
 	_, err := os.Stat(dir)
 	if os.IsNotExist(err) {
-		return nil, fmt.Errorf("failed to read battery status from %s: %s", dir, err)
+		return nil, fmt.Errorf("failed to read battery status from %s: %w", dir, err)
 	}
 	realPath, err := filepath.EvalSymlinks(dir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to eval symlink %s: %s", dir, err)
+		return nil, fmt.Errorf("failed to eval symlink %s: %w", dir, err)
 	}
 	p := entity.NewPayload()
 	err = filepath.WalkDir(realPath, func(path string, d fs.DirEntry, err error) error {
@@ -64,7 +64,7 @@ func (pwr Power) Run(ctx context.Context) (*entity.Payload, error) {
 	// Check if a power cable is attached.
 	acLink := "/sys/class/power_supply/AC"
 	if exists, _ := util.FileExists(acLink); exists {
-		if realPath, err := filepath.EvalSymlinks(acLink); err == nil {
+		if realPath, fileErr := filepath.EvalSymlinks(acLink); fileErr == nil {
 			acInfo := filepath.Join(realPath, "online")
 			if exists, _ := util.FileExists(acLink); exists {
 				p.Attributes["ac_connected"] = util.StringToOnOff(pwr.optimisticRead(acInfo))
