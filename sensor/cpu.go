@@ -56,7 +56,7 @@ func (c CPUTemp) process(output string) (*entity.Payload, error) {
 		if len(match) < 3 {
 			return nil, fmt.Errorf("invalid output form lm-sensors received: %s", output)
 		}
-		if strings.EqualFold(match[1], "Package id") || strings.EqualFold(match[1], "CPU") {
+		if strings.EqualFold(match[1], "Package id") || strings.EqualFold(match[1], "CPU") || strings.EqualFold(match[1], "Tctl") {
 			p.State = match[2]
 		} else {
 			p.Attributes[util.ToSnakeCase(match[1])] = match[2]
