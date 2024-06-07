@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	reCPUTemp = regexp.MustCompile(`(?m)(temp1|Package id|Core \d|CPU)[\s\d]*:\s+.?([\d\.]+)°`)
+	reCPUTemp = regexp.MustCompile(`(?m)(temp1|Package id|Core \d|CPU|Tctl)[\s\d]*:\s+.?([\d\.]+)°`)
 	// This is currently unused.
 	//reCPUTemp2 = regexp.MustCompile(`(?mi)^\s?(?P<name>[^:]+):\s+(?P<value>\d+)`)
 	reCPUUsage = regexp.MustCompile(`(?m)^\s*cpu(\d+)?.*`)
