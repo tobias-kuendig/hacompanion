@@ -57,6 +57,10 @@ func TestCPUTemp(t *testing.T) {
 		pch_cannonlake-virtual-0
 		Adapter: Virtual device
 		temp1:        +37.0°C  
+
+		k10temp-pci-00c3
+		Adapter: PCI adapter
+		Tctl:         +39.6°C
 	`
 	output := &entity.Payload{
 		State: "99.0",
@@ -68,6 +72,7 @@ func TestCPUTemp(t *testing.T) {
 			"core_4": "38.0",
 			"core_5": "39.0",
 			"temp_1": "37.0",
+			"Tctl": "39.6",
 		},
 	}
 
