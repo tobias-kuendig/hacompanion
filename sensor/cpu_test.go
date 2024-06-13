@@ -72,7 +72,7 @@ func TestCPUTemp(t *testing.T) {
 			"core_4": "38.0",
 			"core_5": "39.0",
 			"temp_1": "37.0",
-			"Tctl": "39.6",
+			"Tctl":   "39.6",
 		},
 	}
 
