@@ -98,6 +98,15 @@ systemctl --user enable --now hacompanion
 # journalctl --user -xlf -u hacompanion
 ```
 
+## Persistent notifications
+
+To enable persistent notifications:
+
+1. desktop-file-install --dir=$HOME/.local/share/applications hacompanion.desktop
+1. mkdir -p ~/.local/share/icons/hicolor/128x128/apps/
+1. cp hacompanion.png ~/.local/share/icons/hicolor/128x128/apps/
+1. update-desktop-database $HOME/.local/share/applications -q
+
 ## Custom scripts
 
 You can add any number of custom scripts in your configuration file.
