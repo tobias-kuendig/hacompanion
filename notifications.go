@@ -89,6 +89,7 @@ func (n *Notification) Send(ctx context.Context, title, message string, data api
 	if title != "" {
 		args = append(args, title)
 	}
+	args = append(args, "-h", "string:desktop-entry:hacompanion")
 	args = append(args, message)
 	log.Printf("comand is: notify-send %v", args)
 	cmd := exec.CommandContext(ctx, "notify-send", args...)
