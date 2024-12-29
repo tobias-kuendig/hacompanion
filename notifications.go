@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os/exec"
+	"os/user"
 	"strconv"
 	"time"
 
@@ -20,10 +22,11 @@ type NotificationServer struct {
 	mux          *http.ServeMux
 	address      string
 	Server       *http.Server
+	uid          string
 }
 
-func NewNotificationServer(registration api.Registration, address string) *NotificationServer {
-	s := &NotificationServer{
+func NewNotificationServer(registration api.Registration, address string) (s *NotificationServer, err error) {
+	s = &NotificationServer{
 		registration: registration,
 		mux:          http.NewServeMux(),
 		address:      address,
@@ -37,7 +40,15 @@ func NewNotificationServer(registration api.Registration, address string) *Notif
 		ReadTimeout:       time.Duration(20) * time.Second,
 		WriteTimeout:      time.Duration(20) * time.Second,
 	}
-	return s
+
+	u, err := user.Current()
+	if err != nil {
+		log.Printf("Error getting current user: %v", err)
+		return nil, err
+	}
+	s.uid = u.Uid
+
+	return
 }
 
 func (s NotificationServer) Listen(_ context.Context) {
@@ -56,7 +67,7 @@ func (s NotificationServer) Listen(_ context.Context) {
 			util.RespondError(w, "wrong token", http.StatusUnauthorized)
 			return
 		}
-		err = notification.Send(r.Context(), req.Title, req.Message, req.Data)
+		err = notification.Send(r.Context(), req.Title, req.Message, req.Data, s.uid)
 		if err != nil {
 			log.Printf("failed to send notification: %s", err)
 			util.RespondError(w, err.Error(), http.StatusInternalServerError)
@@ -77,7 +88,7 @@ func (s NotificationServer) Listen(_ context.Context) {
 // Notification is used to send notifications using native tools.
 type Notification struct{}
 
-func (n *Notification) Send(ctx context.Context, title, message string, data api.PushNotificationData) error {
+func (n *Notification) Send(ctx context.Context, title, message string, data api.PushNotificationData, uid string) error {
 	var args []string
 	if data.Expire > 0 {
 		args = append(args, "-t", strconv.Itoa(data.Expire))
@@ -92,7 +103,8 @@ func (n *Notification) Send(ctx context.Context, title, message string, data api
 	args = append(args, message)
 	log.Printf("comand is: notify-send %v", args)
 	cmd := exec.CommandContext(ctx, "notify-send", args...)
-	cmd.Env = []string{"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus"}
+
+	cmd.Env = []string{fmt.Sprintf("DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%v/bus", uid)}
 	if err := cmd.Run(); err != nil {
 		log.Printf("Return :%+v", err)
 		return err
