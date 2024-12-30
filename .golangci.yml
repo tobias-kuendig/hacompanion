@@ -1,6 +1,5 @@
 linters-settings:
-  govet:
-    check-shadowing: true
+  shadow: true
   maligned:
     suggest-new: true
   misspell:
@@ -38,8 +37,6 @@ linters:
     - durationcheck
     - errcheck
     - errorlint
-    - execinquery
-    - exportloopref
     - gochecknoinits
     - gofmt
     - goheader
@@ -52,7 +49,6 @@ linters:
     - govet
     - grouper
     - importas
-    - logrlint
     - makezero
     - misspell
     - nakedret

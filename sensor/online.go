@@ -47,7 +47,6 @@ func (o OnlineCheck) Run(ctx context.Context) (*entity.Payload, error) {
 	}
 }
 
-//nolint:nilerr
 func (o OnlineCheck) checkHTTP(ctx context.Context) (*entity.Payload, error) {
 	p := entity.NewPayload()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, o.target, nil)
