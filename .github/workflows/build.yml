@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        go: [ '1.21' ]
+        go: [ '1.23' ]
     name: Test (${{ matrix.go }})
     steps:
       - uses: actions/checkout@v2
