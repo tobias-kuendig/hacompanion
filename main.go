@@ -206,7 +206,10 @@ func (k *Kernel) Run(appCtx context.Context) error {
 	}
 
 	// Start the notifications server.
-	k.notifications = NewNotificationServer(registration, k.config.Notifications.Listen)
+	k.notifications, err = NewNotificationServer(registration, k.config.Notifications.Listen)
+	if err != nil {
+		return err
+	}
 	go k.notifications.Listen(ctx)
 
 	// The Companion instance gathers sensor data and forwards it to Home Assistant.
