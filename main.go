@@ -12,7 +12,6 @@ import (
 	"hacompanion/util"
 	"io/fs"
 	"log"
-	"math/rand"
 	"os"
 	"os/signal"
 	"os/user"
@@ -67,9 +66,6 @@ func main() {
 	if exists, _ := util.FileExists(configFile.Path); !exists {
 		log.Fatalf("could not load config file %s", configFile.Path)
 	}
-
-	// Get some randomness going.
-	rand.Seed(time.Now().UnixNano())
 
 	// Try to parse the config file.
 	var config Config
