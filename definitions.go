@@ -3,6 +3,7 @@ package main
 import (
 	"hacompanion/entity"
 	"hacompanion/sensor"
+	"hacompanion/sensor/cpu"
 )
 
 // sensorDefinitions is used to map the configuration to internal types.
@@ -14,7 +15,7 @@ var sensorDefinitions = map[string]func(m entity.Meta) entity.SensorDefinition{
 		}
 		return entity.SensorDefinition{
 			Type:        "sensor",
-			Runner:      func(m entity.Meta) entity.Runner { return sensor.NewCPUTemp(m) },
+			Runner:      func(m entity.Meta) entity.Runner { return cpu.NewCPUTemp(m) },
 			DeviceClass: "temperature",
 			Icon:        "mdi:thermometer",
 			Unit:        unit,
@@ -23,7 +24,7 @@ var sensorDefinitions = map[string]func(m entity.Meta) entity.SensorDefinition{
 	"cpu_usage": func(_ entity.Meta) entity.SensorDefinition {
 		return entity.SensorDefinition{
 			Type:   "sensor",
-			Runner: func(m entity.Meta) entity.Runner { return sensor.NewCPUUsage() },
+			Runner: func(m entity.Meta) entity.Runner { return cpu.NewCPUUsage() },
 			Icon:   "mdi:gauge",
 			Unit:   "%",
 		}
