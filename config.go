@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"hacompanion/entity"
+	"hacompanion/util"
 	"log"
 	"net"
 )
@@ -23,8 +24,8 @@ type homeassistantConfig struct {
 }
 
 type companionConfig struct {
-	UpdateInterval   duration `toml:"update_interval"`
-	RegistrationFile homePath `toml:"registration_file"`
+	UpdateInterval   duration      `toml:"update_interval"`
+	RegistrationFile util.HomePath `toml:"registration_file"`
 }
 
 type notificationsConfig struct {
