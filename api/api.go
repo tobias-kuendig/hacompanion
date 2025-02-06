@@ -127,19 +127,23 @@ type API struct {
 	DeviceName   string
 	client       http.Client
 	Registration Registration
+	quiet        bool
 }
 
-func NewAPI(host, token string, deviceName string) *API {
+func NewAPI(host, token, deviceName string, quiet bool) *API {
 	return &API{
 		Host:       host,
 		Token:      token,
 		DeviceName: deviceName,
 		client:     http.Client{Timeout: 5 * time.Second},
+		quiet:      quiet,
 	}
 }
 
 func (api *API) sendRequest(ctx context.Context, url string, payload []byte) ([]byte, error) {
-	log.Printf("sending to %s: %+v", url, string(payload))
+	if !api.quiet {
+		log.Printf("sending to %s: %+v", url, string(payload))
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, err
@@ -157,7 +161,9 @@ func (api *API) sendRequest(ctx context.Context, url string, payload []byte) ([]
 	if resp.StatusCode >= 400 {
 		return nil, fmt.Errorf("received invalid status code %d (%s)", resp.StatusCode, body)
 	}
-	log.Printf("received %s", string(body))
+	if !api.quiet {
+		log.Printf("received %s", string(body))
+	}
 	return body, nil
 }
 

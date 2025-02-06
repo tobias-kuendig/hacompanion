@@ -51,10 +51,12 @@ func main() {
 	var hassHost string
 	var deviceName string
 	var configFlag string
+	var quiet bool
 	flag.StringVar(&configFlag, "config", "~/.config/hacompanion.toml", "Path to the config file")
 	flag.StringVar(&hassHost, "host", "", "Home Assistant host")
 	flag.StringVar(&hassToken, "token", "", "Long-lived access token")
 	flag.StringVar(&deviceName, "device-name", "", "Device name")
+	flag.BoolVar(&quiet, "quiet", false, "Disable verbose logging")
 	flag.Parse()
 
 	configFile, err := util.NewHomePath(configFlag)
@@ -136,12 +138,12 @@ func main() {
 	// Build the application kernel.
 	k := Kernel{
 		config: &config,
-		api:    api.NewAPI(hassHost, hassToken, deviceName),
+		api:    api.NewAPI(hassHost, hassToken, deviceName, quiet),
 	}
 
 	// Start the main process.
 	go func() {
-		err = k.Run(context.Background())
+		err = k.Run(context.Background(), quiet)
 		if err != nil {
 			log.Fatalf("failed to start application: %s", err)
 		}
@@ -166,7 +168,7 @@ func main() {
 }
 
 // Run runs the application.
-func (k *Kernel) Run(appCtx context.Context) error {
+func (k *Kernel) Run(appCtx context.Context, quiet bool) error {
 	log.Printf("Starting Desktop Companion version %s", Version)
 	// Create a global application context that is later used for proper shutdowns.
 	ctx, cancel := context.WithCancel(appCtx)
@@ -190,7 +192,7 @@ func (k *Kernel) Run(appCtx context.Context) error {
 	}
 
 	// Parse out all sensors from the config file and register them in Home Assistant.
-	sensors, err := k.buildSensors(k.config)
+	sensors, err := k.buildSensors(k.config, quiet)
 	if err != nil {
 		return fmt.Errorf("failed to build sensors from config: %w", err)
 	}
@@ -259,7 +261,7 @@ func (k *Kernel) Shutdown(ctx context.Context) error {
 }
 
 // buildSensors returns a slice of concrete Sensor types based on the configuration.
-func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
+func (k *Kernel) buildSensors(config *Config, quiet bool) ([]entity.Sensor, error) {
 	var sensors []entity.Sensor
 	// Parse default sensor configuration.
 	for key, sensorConfig := range config.Sensors {
@@ -279,6 +281,7 @@ func (k *Kernel) buildSensors(config *Config) ([]entity.Sensor, error) {
 			DeviceClass: data.DeviceClass,
 			Icon:        data.Icon,
 			Unit:        data.Unit,
+			QuietOutput: quiet,
 		})
 	}
 	// Parse custom scripts.

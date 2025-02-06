@@ -98,6 +98,16 @@ systemctl --user enable --now hacompanion
 # journalctl --user -xlf -u hacompanion
 ```
 
+## Controlling the output
+
+By default, the companion will log all sent and received messages to the console.
+
+You can reduce the output by using the `-quiet` flag:
+
+```bash
+hacompanion -quiet
+```  
+
 ## Custom scripts
 
 You can add any number of custom scripts in your configuration file.

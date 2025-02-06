@@ -48,6 +48,7 @@ type Sensor struct {
 	Name        string
 	UniqueID    string
 	Unit        string
+	QuietOutput bool
 }
 
 func (s Sensor) String() string {
@@ -62,7 +63,9 @@ func (s Sensor) Update(ctx context.Context, wg *sync.WaitGroup, outputs *Outputs
 		log.Printf("failed to run sensor %s: %s", s, err)
 		return
 	}
-	log.Printf("received Payload for %s: %+v", s.UniqueID, value)
+	if !s.QuietOutput {
+		log.Printf("received Payload for %s: %+v", s.UniqueID, value)
+	}
 	outputs.Add(Output{Sensor: s, Payload: value})
 }
 
@@ -70,6 +73,8 @@ func (s Sensor) Update(ctx context.Context, wg *sync.WaitGroup, outputs *Outputs
 func (s Sensor) Invalidate(outputs *Outputs) {
 	p := NewPayload()
 	p.State = "unavailable"
-	log.Printf("received p for %s: %+v", s.UniqueID, p)
+	if !s.QuietOutput {
+		log.Printf("received p for %s: %+v", s.UniqueID, p)
+	}
 	outputs.Add(Output{Sensor: s, Payload: p})
 }
