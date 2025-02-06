@@ -149,7 +149,7 @@ It can be registered like this:
 
 ```toml
 [script.custom_time]
-path = "/path/to/script.sh"
+path = "~/path/to/script.sh"
 name = "The current time"
 icon = "mdi:clock-outline"
 type = "sensor"
