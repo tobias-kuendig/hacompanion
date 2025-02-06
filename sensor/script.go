@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"hacompanion/entity"
+	"hacompanion/util"
 	"log"
 	"os/exec"
 	"strings"
@@ -24,9 +25,15 @@ func (s Script) Run(ctx context.Context) (*entity.Payload, error) {
 	var err error
 	var out bytes.Buffer
 
+	// Replace the ~ with the user's home directory.
+	path, err := util.NewHomePath(s.cfg.Path)
+	if err != nil {
+		return nil, err
+	}
+
 	// Call the custom script.
 	//nolint:gosec
-	cmd := exec.CommandContext(ctx, s.cfg.Path)
+	cmd := exec.CommandContext(ctx, path.Path)
 	cmd.Stdout = &out
 	if err = cmd.Run(); err != nil {
 		return nil, err

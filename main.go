@@ -14,10 +14,8 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"os/user"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -59,7 +57,7 @@ func main() {
 	flag.StringVar(&deviceName, "device-name", "", "Device name")
 	flag.Parse()
 
-	configFile, err := homePathFromString(configFlag)
+	configFile, err := util.NewHomePath(configFlag)
 	if err != nil {
 		log.Fatalf("failed to parse config flag %s: %s", configFlag, err)
 	}
@@ -403,28 +401,4 @@ func (d *duration) UnmarshalText(text []byte) error {
 	var err error
 	d.Duration, err = time.ParseDuration(string(text))
 	return err
-}
-
-// homePath enables support for ~/home/paths.
-type homePath struct {
-	Path string
-}
-
-func homePathFromString(in string) (*homePath, error) {
-	h := &homePath{}
-	err := h.UnmarshalText([]byte(in))
-	return h, err
-}
-
-func (h *homePath) UnmarshalText(text []byte) error {
-	h.Path = string(text)
-	if strings.HasPrefix(h.Path, "~/") {
-		usr, err := user.Current()
-		if err != nil {
-			return err
-		}
-		h.Path = filepath.Join(usr.HomeDir, string(text[2:]))
-		return nil
-	}
-	return nil
 }
