@@ -6,6 +6,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"hacompanion/entity"
 	"hacompanion/util"
@@ -71,6 +73,7 @@ func (pwr Power) Run(ctx context.Context) (*entity.Payload, error) {
 			}
 		}
 	}
+	p.Icon = pwr.resolveIcon(p.State)
 	return p, err
 }
 
@@ -80,4 +83,32 @@ func (pwr Power) optimisticRead(file string) string {
 		return ""
 	}
 	return string(b)
+}
+
+func (pwr Power) resolveIcon(state any) string {
+	num, err := strconv.Atoi(strings.TrimSpace(state.(string)))
+	if err != nil {
+		return "mdi:battery-unknown"
+	}
+
+	switch {
+	case num >= 90:
+		return "mdi:battery"
+	case num >= 80:
+		return "mdi:battery-80"
+	case num >= 70:
+		return "mdi:battery-70"
+	case num >= 60:
+		return "mdi:battery-60"
+	case num >= 50:
+		return "mdi:battery-50"
+	case num >= 40:
+		return "mdi:battery-40"
+	case num >= 30:
+		return "mdi:battery-30"
+	case num >= 20:
+		return "mdi:battery-20"
+	default:
+		return "mdi:battery-alert"
+	}
 }
