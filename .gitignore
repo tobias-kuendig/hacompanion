@@ -17,3 +17,6 @@
 # vendor/
 dist/
 hacompanion
+
+# nix
+result
