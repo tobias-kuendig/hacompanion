@@ -35,6 +35,42 @@ Arch Linux users have the option to install the binary as an AUR package. Eg:
 yay -Sy hacompanion
 ```
 
+For NixOS users there's a [flake](./flake.nix). Therefore you can simply run
+the following to give it a try:
+
+```shell
+nix run github:tobias-kuendig/hacompanion
+```
+
+Installing it:
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    hacompanion = {
+      url = "github:tobias-kuendig/hacompanion";
+      inputs.nixpkgs.follows = "nixpkgs"; # optional
+    };
+  };
+
+  outputs = { self, nixpkgs, hacompanion }: let
+    system = "x86_64-linux";
+    pkgs = import nixpkgs { inherit system; };
+  in {
+    nixosConfigurations.myhostname = pkgs.nixosSystem {
+      system = system;
+      modules = [
+        {
+          environment.systemPackages = [
+            hacompanion.packages.${pkgs.system}.hacompanion
+          ];
+        }
+      ];
+    };
+}
+```
+
 You can now start the companion with the `hacompanion` command. But before doing so, you have to set up
 the configuration:
 
