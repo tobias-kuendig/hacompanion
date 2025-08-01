@@ -26,11 +26,12 @@
           overlays = [ gomod2nix.overlays.default ];
         };
 
-        hacompanionPkg = pkgs.buildGoApplication rec {
+        hacompanionPkg = pkgs.buildGoModule rec {
           pname = "hacompanion";
           version = "1.0.21";
           src = ./.;
-          modules = ./gomod2nix.toml;
+
+          vendorHash = "sha256-y2eSuMCDZTGdCs70zYdA8NKbuPPN5xmnRfMNK+AE/q8=";
 
           ldflags = [
             "-s"
