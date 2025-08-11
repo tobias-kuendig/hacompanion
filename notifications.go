@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"os/exec"
 	"os/user"
+	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"hacompanion/api"
@@ -89,7 +91,7 @@ func (s NotificationServer) Listen(_ context.Context) {
 type Notification struct{}
 
 func (n *Notification) Send(ctx context.Context, title, message string, data api.PushNotificationData, uid string) error {
-	if message == "clear_notification" {
+	if slices.Contains([]string{"clear_notification", "remove_channel", "tts"}, strings.ToLower(message)) {
 		return nil
 	}
 
