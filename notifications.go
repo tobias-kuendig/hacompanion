@@ -89,6 +89,10 @@ func (s NotificationServer) Listen(_ context.Context) {
 type Notification struct{}
 
 func (n *Notification) Send(ctx context.Context, title, message string, data api.PushNotificationData, uid string) error {
+	if message == "clear_notification" {
+		return nil
+	}
+
 	var args []string
 	if data.Expire > 0 {
 		args = append(args, "-t", strconv.Itoa(data.Expire))
