@@ -1,14 +1,11 @@
 linters-settings:
-  shadow: true
-  maligned:
-    suggest-new: true
   misspell:
     locale: US
   gosec:
     excludes:
       - G602
   goimports:
-    local-prefixes: caresuite
+    local-prefixes: hacompanion
   gocritic:
     enabled-tags:
     - diagnostic
