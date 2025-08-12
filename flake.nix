@@ -4,11 +4,6 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    gomod2nix = {
-      url = "github:tweag/gomod2nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "flake-utils";
-    };
   };
 
   outputs =
@@ -16,21 +11,20 @@
       self,
       nixpkgs,
       flake-utils,
-      gomod2nix,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ gomod2nix.overlays.default ];
         };
 
-        hacompanionPkg = pkgs.buildGoApplication rec {
+        hacompanionPkg = pkgs.buildGoModule rec {
           pname = "hacompanion";
-          version = "1.0.21";
+          version = "1.0.23";
           src = ./.;
-          modules = ./gomod2nix.toml;
+
+          vendorHash = "sha256-y2eSuMCDZTGdCs70zYdA8NKbuPPN5xmnRfMNK+AE/q8=";
 
           ldflags = [
             "-s"
