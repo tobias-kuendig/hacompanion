@@ -21,7 +21,7 @@
 
         hacompanionPkg = pkgs.buildGoModule rec {
           pname = "hacompanion";
-          version = "1.0.21";
+          version = "1.0.23";
           src = ./.;
 
           vendorHash = "sha256-y2eSuMCDZTGdCs70zYdA8NKbuPPN5xmnRfMNK+AE/q8=";
