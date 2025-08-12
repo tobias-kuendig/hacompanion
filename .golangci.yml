@@ -4,8 +4,6 @@ linters-settings:
   gosec:
     excludes:
       - G602
-  goimports:
-    local-prefixes: hacompanion
   gocritic:
     enabled-tags:
     - diagnostic
