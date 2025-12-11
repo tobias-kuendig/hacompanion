@@ -99,6 +99,7 @@ type PushNotificationData struct {
 	Key     string `json:"key"`
 	Urgency string `json:"urgency"`
 	Expire  int    `json:"expire"`
+	Icon    string `json:"icon"`
 }
 
 func (api *API) URL(skipCloud bool) string {

@@ -102,6 +102,9 @@ func (n *Notification) Send(ctx context.Context, title, message string, data api
 	if data.Urgency != "" {
 		args = append(args, "-u", data.Urgency)
 	}
+	if data.Icon != "" {
+		args = append(args, "-i", data.Icon)
+	}
 	args = append(args, "-a", "'Home Assistant'")
 	if title != "" {
 		args = append(args, title)
