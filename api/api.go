@@ -95,11 +95,17 @@ type PushNotificationRequest struct {
 	Data PushNotificationData `json:"data"`
 }
 
+type Action struct {
+    Action string `json:"action"`
+    Title  string `json:"title"`
+}
+
 type PushNotificationData struct {
-	Key     string `json:"key"`
-	Urgency string `json:"urgency"`
-	Expire  int    `json:"expire"`
-	Icon    string `json:"icon"`
+	Key     string   `json:"key"`
+	Urgency string   `json:"urgency"`
+	Expire  int      `json:"expire"`
+	Icon    string   `json:"icon"`
+	Actions []Action `json:"actions"` 
 }
 
 func (api *API) URL(skipCloud bool) string {
