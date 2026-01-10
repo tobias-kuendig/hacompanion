@@ -73,42 +73,64 @@ func (pwr Power) Run(ctx context.Context) (*entity.Payload, error) {
 			}
 		}
 	}
-	p.Icon = pwr.resolveIcon(p.State)
+	charging := false
+
+        if s, ok := p.Attributes["status"].(string); ok {
+                charging = strings.TrimSpace(s) == "Charging"
+        }
+
+        if ac, ok := p.Attributes["ac_connected"].(string); ok && ac == "on" {
+                charging = true
+        }
+
+        p.Icon = pwr.resolveIcon(p.State, charging)
 	return p, err
 }
 
 func (pwr Power) optimisticRead(file string) string {
-	b, err := os.ReadFile(file)
-	if err != nil {
-		return ""
-	}
+        	b, err := os.ReadFile(file)
+	        if err != nil {
+		        return ""
+        	}
 	return string(b)
 }
 
-func (pwr Power) resolveIcon(state any) string {
-	num, err := strconv.Atoi(strings.TrimSpace(state.(string)))
-	if err != nil {
-		return "mdi:battery-unknown"
-	}
+func (pwr Power) resolveIcon(state any, charging bool) string {
+        num, err := strconv.Atoi(strings.TrimSpace(state.(string)))
+        if err != nil {
+                return "mdi:battery-unknown"
+        }
 
-	switch {
-	case num >= 90:
-		return "mdi:battery"
-	case num >= 80:
-		return "mdi:battery-80"
-	case num >= 70:
-		return "mdi:battery-70"
-	case num >= 60:
-		return "mdi:battery-60"
-	case num >= 50:
-		return "mdi:battery-50"
-	case num >= 40:
-		return "mdi:battery-40"
-	case num >= 30:
-		return "mdi:battery-30"
-	case num >= 20:
-		return "mdi:battery-20"
-	default:
-		return "mdi:battery-alert"
-	}
+        // Normalize to MDI steps
+        level := 0
+        switch {
+        case num >= 90:
+                level = 100
+        case num >= 80:
+                level = 80
+        case num >= 70:
+                level = 70
+        case num >= 60:
+                level = 60
+        case num >= 50:
+                level = 50
+        case num >= 40:
+                level = 40
+        case num >= 30:
+                level = 30
+        case num >= 20:
+                level = 20
+        default:
+                level = 10
+        }
+
+        if charging {
+                return fmt.Sprintf("mdi:battery-charging-%d", level)
+        }
+
+        if level == 100 {
+                return "mdi:battery"
+        }
+
+        return fmt.Sprintf("mdi:battery-%d", level)
 }
