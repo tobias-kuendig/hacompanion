@@ -133,6 +133,6 @@ func (pwr Power) resolveIcon(state any, charging bool) string {
 	if charging {
 		return fmt.Sprintf("mdi:battery-charging-%d", level)
 	}
-	
+
 	return fmt.Sprintf("mdi:battery-%d", level)
 }
