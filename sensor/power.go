@@ -73,7 +73,18 @@ func (pwr Power) Run(ctx context.Context) (*entity.Payload, error) {
 			}
 		}
 	}
-	p.Icon = pwr.resolveIcon(p.State)
+
+	var charging bool
+	if s, ok := p.Attributes["status"].(string); ok {
+		charging = strings.TrimSpace(s) == "Charging"
+	}
+
+	if ac, ok := p.Attributes["ac_connected"].(string); ok && ac == "on" {
+		charging = true
+	}
+
+	p.Icon = pwr.resolveIcon(p.State, charging)
+
 	return p, err
 }
 
@@ -82,33 +93,46 @@ func (pwr Power) optimisticRead(file string) string {
 	if err != nil {
 		return ""
 	}
+
 	return string(b)
 }
 
-func (pwr Power) resolveIcon(state any) string {
+func (pwr Power) resolveIcon(state any, charging bool) string {
 	num, err := strconv.Atoi(strings.TrimSpace(state.(string)))
 	if err != nil {
 		return "mdi:battery-unknown"
 	}
 
+	// Normalize to MDI steps
+	var level int
 	switch {
 	case num >= 90:
-		return "mdi:battery"
+		level = 100
 	case num >= 80:
-		return "mdi:battery-80"
+		level = 80
 	case num >= 70:
-		return "mdi:battery-70"
+		level = 70
 	case num >= 60:
-		return "mdi:battery-60"
+		level = 60
 	case num >= 50:
-		return "mdi:battery-50"
+		level = 50
 	case num >= 40:
-		return "mdi:battery-40"
+		level = 40
 	case num >= 30:
-		return "mdi:battery-30"
+		level = 30
 	case num >= 20:
-		return "mdi:battery-20"
+		level = 20
 	default:
-		return "mdi:battery-alert"
+		level = 10
 	}
+
+	if level == 100 {
+		return "mdi:battery"
+	}
+
+	if charging {
+		return fmt.Sprintf("mdi:battery-charging-%d", level)
+	}
+	
+	return fmt.Sprintf("mdi:battery-%d", level)
 }
