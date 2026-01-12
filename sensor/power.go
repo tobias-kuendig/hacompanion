@@ -98,16 +98,22 @@ func (pwr Power) optimisticRead(file string) string {
 }
 
 func (pwr Power) resolveIcon(state any, charging bool) string {
+	if charging {
+		return fmt.Sprintf("mdi:battery-charging-%d", level)
+	}
+	
 	num, err := strconv.Atoi(strings.TrimSpace(state.(string)))
 	if err != nil {
 		return "mdi:battery-unknown"
 	}
+	
+	if num >= 90 {
+		return "mdi:battery"
+	}
 
 	// Normalize to MDI steps
-	level := 0
+	var level int
 	switch {
-	case num >= 90:
-		level = 100
 	case num >= 80:
 		level = 80
 	case num >= 70:
@@ -126,13 +132,6 @@ func (pwr Power) resolveIcon(state any, charging bool) string {
 		level = 10
 	}
 
-	if charging {
-		return fmt.Sprintf("mdi:battery-charging-%d", level)
-	}
-
-	if level == 100 {
-		return "mdi:battery"
-	}
 
 	return fmt.Sprintf("mdi:battery-%d", level)
 }
