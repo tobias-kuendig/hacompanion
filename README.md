@@ -189,6 +189,7 @@ path = "~/path/to/script.sh"
 name = "The current time"
 icon = "mdi:clock-outline"
 type = "sensor"
+# state_class = "measurement"
 ```
 
 The script content:
@@ -227,4 +228,3 @@ data:
 
 Feel free to share your automation ideas [in the Discussions section](https://github.com/tobias-kuendig/hacompanion/discussions) of this
 repo.
-

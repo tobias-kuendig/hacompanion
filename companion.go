@@ -32,26 +32,7 @@ func (c *Companion) UpdateSensorData(ctx context.Context) {
 
 	c.wg.Wait()
 
-	// Build one request to send all updated values to Home Assistant.
-	var data []api.UpdateSensorDataRequest
-	for _, output := range outputs.Data {
-		if output.Payload == nil {
-			continue
-		}
-		icon := output.Payload.Icon
-		if icon == "" {
-			icon = output.Sensor.Icon
-		}
-		data = append(data, api.UpdateSensorDataRequest{
-			Type:       output.Sensor.Type,
-			State:      output.Payload.State,
-			Attributes: output.Payload.Attributes,
-			UniqueID:   output.Sensor.UniqueID,
-			Icon:       icon,
-		})
-	}
-
-	err := c.api.UpdateSensorData(ctx, data)
+	err := c.api.UpdateSensorData(ctx, buildUpdateSensorDataRequests(outputs, true))
 	if err != nil {
 		log.Printf("failed to update sensor data: %s", err)
 	}
@@ -105,22 +86,30 @@ func (c *Companion) InvalidateAllSensors(ctx context.Context) {
 		sensor.Invalidate(&outputs)
 	}
 
-	// Build one request to send all updated values to Home Assistant.
+	err := c.api.UpdateSensorData(ctx, buildUpdateSensorDataRequests(outputs, false))
+	if err != nil {
+		log.Printf("failed to update sensor data: %s", err)
+	}
+}
+
+func buildUpdateSensorDataRequests(outputs entity.Outputs, preferPayloadIcon bool) []api.UpdateSensorDataRequest {
 	var data []api.UpdateSensorDataRequest
 	for _, output := range outputs.Data {
 		if output.Payload == nil {
 			continue
 		}
+		icon := output.Sensor.Icon
+		if preferPayloadIcon && output.Payload.Icon != "" {
+			icon = output.Payload.Icon
+		}
 		data = append(data, api.UpdateSensorDataRequest{
-			Type:     output.Sensor.Type,
-			State:    output.Payload.State,
-			UniqueID: output.Sensor.UniqueID,
-			Icon:     output.Sensor.Icon,
+			Type:       output.Sensor.Type,
+			State:      output.Payload.State,
+			Attributes: output.Payload.Attributes,
+			UniqueID:   output.Sensor.UniqueID,
+			Icon:       icon,
+			StateClass: output.Sensor.StateClass,
 		})
 	}
-
-	err := c.api.UpdateSensorData(ctx, data)
-	if err != nil {
-		log.Printf("failed to update sensor data: %s", err)
-	}
+	return data
 }

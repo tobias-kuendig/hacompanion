@@ -280,6 +280,7 @@ func (k *Kernel) buildSensors(config *Config, quiet bool) ([]entity.Sensor, erro
 			Runner:      data.Runner(sensorConfig.Meta),
 			DeviceClass: data.DeviceClass,
 			Icon:        data.Icon,
+			StateClass:  data.StateClass,
 			Unit:        data.Unit,
 			QuietOutput: quiet,
 		})
@@ -292,6 +293,7 @@ func (k *Kernel) buildSensors(config *Config, quiet bool) ([]entity.Sensor, erro
 			DeviceClass: scriptConfig.DeviceClass,
 			Icon:        scriptConfig.Icon,
 			Name:        scriptConfig.Name,
+			StateClass:  scriptConfig.StateClass,
 			UniqueID:    key,
 			Unit:        scriptConfig.UnitOfMeasurement,
 		})

@@ -20,3 +20,12 @@ hacompanion
 
 # nix
 result
+
+# Go cache
+.gocache/
+.cache/
+.gomodcache/
+.gopath/
+
+# local tooling artifacts
+.codex
