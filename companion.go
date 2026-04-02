@@ -108,7 +108,6 @@ func buildUpdateSensorDataRequests(outputs entity.Outputs, preferPayloadIcon boo
 			Attributes: output.Payload.Attributes,
 			UniqueID:   output.Sensor.UniqueID,
 			Icon:       icon,
-			StateClass: output.Sensor.StateClass,
 		})
 	}
 	return data

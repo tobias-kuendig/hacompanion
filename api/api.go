@@ -66,7 +66,6 @@ type registerSensorRequestPayload struct {
 type UpdateSensorDataRequest struct {
 	Attributes map[string]interface{} `json:"attributes"`
 	Icon       string                 `json:"icon"`
-	StateClass string                 `json:"state_class,omitempty"`
 	State      interface{}            `json:"state"`
 	Type       string                 `json:"type"`
 	UniqueID   string                 `json:"unique_id"`

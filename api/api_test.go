@@ -52,7 +52,7 @@ func TestRegisterSensorsIncludesStateClass(t *testing.T) {
 	assert.Equal(t, "cpu_usage", payload.Data.UniqueID)
 }
 
-func TestUpdateSensorDataIncludesStateClass(t *testing.T) {
+func TestUpdateSensorDataDoesNotIncludeStateClass(t *testing.T) {
 	var payload updateSensorRequestPayload
 	client := NewAPI("http://example.com", "token", "device", true)
 	client.Registration = Registration{WebhookID: "abc123"}
@@ -76,12 +76,11 @@ func TestUpdateSensorDataIncludesStateClass(t *testing.T) {
 		Attributes: map[string]interface{}{"unit": "%"},
 		UniqueID:   "cpu_usage",
 		Icon:       "mdi:gauge",
-		StateClass: "measurement",
 	}})
 	require.NoError(t, err)
 
 	require.Len(t, payload.Data, 1)
 	assert.Equal(t, "update_sensor_states", payload.Type)
-	assert.Equal(t, "measurement", payload.Data[0].StateClass)
 	assert.Equal(t, "cpu_usage", payload.Data[0].UniqueID)
+	assert.Equal(t, "mdi:gauge", payload.Data[0].Icon)
 }
