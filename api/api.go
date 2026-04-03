@@ -51,6 +51,7 @@ type RegisterSensorRequest struct {
 	DeviceClass       string            `json:"device_class,omitempty"`
 	Icon              string            `json:"icon"`
 	Name              string            `json:"name"`
+	StateClass        string            `json:"state_class,omitempty"`
 	State             string            `json:"state,omitempty"`
 	Type              string            `json:"type"`
 	UniqueID          string            `json:"unique_id"`
@@ -247,6 +248,7 @@ func (api *API) RegisterSensors(ctx context.Context, sensors []entity.Sensor) er
 			DeviceClass:       sensor.DeviceClass,
 			Icon:              sensor.Icon,
 			Name:              sensor.Name,
+			StateClass:        sensor.StateClass,
 			UniqueID:          sensor.UniqueID,
 			UnitOfMeasurement: sensor.Unit,
 		})

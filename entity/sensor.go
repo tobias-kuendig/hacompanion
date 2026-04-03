@@ -18,6 +18,7 @@ type SensorDefinition struct {
 	Runner      func(Meta) Runner
 	DeviceClass string
 	Icon        string
+	StateClass  string
 	Unit        string
 }
 
@@ -36,6 +37,7 @@ type ScriptConfig struct {
 	Type              string
 	UnitOfMeasurement string `toml:"unit_of_measurement"`
 	DeviceClass       string `toml:"device_class"`
+	StateClass        string `toml:"state_class"`
 }
 
 // Sensor is a concrete instance of a sensor defined in the config file.
@@ -46,6 +48,7 @@ type Sensor struct {
 	DeviceClass string
 	Icon        string
 	Name        string
+	StateClass  string
 	UniqueID    string
 	Unit        string
 	QuietOutput bool
