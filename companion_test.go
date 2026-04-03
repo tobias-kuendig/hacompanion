@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"hacompanion/entity"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,7 +25,7 @@ func TestBuildUpdateSensorDataRequestsOmitsStateClass(t *testing.T) {
 		},
 	})
 
-	data := buildUpdateSensorDataRequests(outputs, true)
+	data := buildUpdateSensorDataRequests(&outputs, true)
 
 	require.Len(t, data, 1)
 	assert.Equal(t, "cpu_usage", data[0].UniqueID)

@@ -32,7 +32,7 @@ func (c *Companion) UpdateSensorData(ctx context.Context) {
 
 	c.wg.Wait()
 
-	err := c.api.UpdateSensorData(ctx, buildUpdateSensorDataRequests(outputs, true))
+	err := c.api.UpdateSensorData(ctx, buildUpdateSensorDataRequests(&outputs, true))
 	if err != nil {
 		log.Printf("failed to update sensor data: %s", err)
 	}
@@ -86,13 +86,13 @@ func (c *Companion) InvalidateAllSensors(ctx context.Context) {
 		sensor.Invalidate(&outputs)
 	}
 
-	err := c.api.UpdateSensorData(ctx, buildUpdateSensorDataRequests(outputs, false))
+	err := c.api.UpdateSensorData(ctx, buildUpdateSensorDataRequests(&outputs, false))
 	if err != nil {
 		log.Printf("failed to update sensor data: %s", err)
 	}
 }
 
-func buildUpdateSensorDataRequests(outputs entity.Outputs, preferPayloadIcon bool) []api.UpdateSensorDataRequest {
+func buildUpdateSensorDataRequests(outputs *entity.Outputs, preferPayloadIcon bool) []api.UpdateSensorDataRequest {
 	var data []api.UpdateSensorDataRequest
 	for _, output := range outputs.Data {
 		if output.Payload == nil {
