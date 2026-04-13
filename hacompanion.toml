@@ -22,7 +22,7 @@ push_url = "http://<your-local-ip>:8080/notifications"
 listen = ":8080"
 
 ##
-## Below are all available senors. Enable/Disable them as needed.
+## Below are all available sensors. Enable/Disable them as needed.
 ##
 
 # Report the number of processes that are currently accessing your webcam.
