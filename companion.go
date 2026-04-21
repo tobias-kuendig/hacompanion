@@ -52,26 +52,9 @@ func (c *Companion) RunBackgroundProcesses(ctx context.Context, wg *sync.WaitGro
 
 // UpdateCompanionRunningState updates the Companion running state.
 func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.WaitGroup) {
-	update := func(state bool) {
-		bgCtx := context.Background()
-		if !state {
-			log.Printf("Invalidating all sensors")
-			c.InvalidateAllSensors(bgCtx)
-		}
-		err := c.api.UpdateSensorData(bgCtx, []api.UpdateSensorDataRequest{{
-			State:    state,
-			Type:     "binary_sensor",
-			Icon:     "mdi:heart-pulse",
-			UniqueID: "companion_running",
-		}})
-		if err != nil {
-			log.Printf("failed to update companion_running state: %s", err)
-		}
-	}
-
-	update(true)
+	c.UpdateCompanionSensorData(true)
 	defer func() {
-		update(false)
+		c.UpdateCompanionSensorData(false)
 		wg.Done()
 	}()
 
@@ -111,4 +94,21 @@ func buildUpdateSensorDataRequests(outputs *entity.Outputs, preferPayloadIcon bo
 		})
 	}
 	return data
+}
+
+func (c *Companion) UpdateCompanionSensorData(state bool) {
+	bgCtx := context.Background()
+	if !state {
+		log.Printf("Invalidating all sensors")
+		c.InvalidateAllSensors(bgCtx)
+	}
+	err := c.api.UpdateSensorData(bgCtx, []api.UpdateSensorDataRequest{{
+		State:    state,
+		Type:     "binary_sensor",
+		Icon:     "mdi:heart-pulse",
+		UniqueID: "companion_running",
+	}})
+	if err != nil {
+		log.Printf("failed to update companion_running state: %s", err)
+	}
 }
