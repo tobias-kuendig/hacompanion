@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/godbus/dbus/v5"
 )
 
 var (
@@ -35,6 +36,16 @@ var (
 	// and the Companion version is not displayed there otherwise,
 	// we construct OsVersion with both Version and OsName.
 	OsVersion = fmt.Sprintf("%s (%s)", Version, OsName)
+)
+
+const (
+	loginDestination     = "org.freedesktop.login1"
+	loginPath            = "/org/freedesktop/login1"
+	loginInterface       = "org.freedesktop.login1.Manager"
+	loginMethodInhibit   = loginInterface + ".Inhibit"
+	inhibitorMessage     = "Setting sensors to unavailable"
+	inhibitorMethodSleep = "sleep"
+	inhibitorModeDelay   = "delay"
 )
 
 // Kernel holds all of the application's dependencies.
@@ -214,6 +225,7 @@ func (k *Kernel) Run(appCtx context.Context, quiet bool) error {
 	// Start the background processes.
 	k.bgProcesses.Add(1)
 	go c.RunBackgroundProcesses(ctx, k.bgProcesses)
+	go handleSleep(c)
 
 	// Run the first update immediately on startup.
 	c.UpdateSensorData(ctx)
@@ -406,4 +418,65 @@ func (d *duration) UnmarshalText(text []byte) error {
 	var err error
 	d.Duration, err = time.ParseDuration(string(text))
 	return err
+}
+
+func handleSleep(companion *Companion) {
+	conn, err := dbus.SystemBus()
+	if err != nil {
+		log.Println("D-bus is unavailable. Not handling login inhibitor")
+		return
+	}
+	defer conn.Close()
+
+	var fd int
+	obj := conn.Object(
+		loginDestination,
+		dbus.ObjectPath(loginPath),
+	)
+
+	err = obj.Call(loginMethodInhibit, 0,
+		inhibitorMethodSleep, AppID, inhibitorMessage, inhibitorModeDelay).Store(&fd)
+
+	if err != nil {
+		log.Fatalf("error storing file descriptor: %v", err)
+		return
+	}
+
+	err = conn.AddMatchSignal(
+		dbus.WithMatchInterface(loginInterface),
+		dbus.WithMatchObjectPath(loginPath),
+		dbus.WithMatchMember("PrepareForSleep"),
+	)
+
+	if err != nil {
+		log.Fatalf("error adding match signal: %v", err)
+	}
+
+	c := make(chan *dbus.Signal, 10)
+	conn.Signal(c)
+
+	for sig := range c {
+		isSleeping, ok := sig.Body[0].(bool)
+		if !ok {
+			continue
+		}
+
+		if isSleeping {
+			companion.UpdateCompanionSensorData(false)
+			err = syscall.Close(fd)
+			if err != nil {
+				log.Fatalf("error closing file descriptor: %v", err)
+				return
+			}
+		} else {
+			companion.UpdateCompanionSensorData(true)
+
+			err = obj.Call(loginMethodInhibit, 0,
+				inhibitorMethodSleep, AppID, inhibitorMessage, inhibitorModeDelay).Store(&fd)
+			if err != nil {
+				log.Fatalf("error storing file descriptor: %v", err)
+				return
+			}
+		}
+	}
 }
