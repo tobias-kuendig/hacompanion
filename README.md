@@ -25,15 +25,24 @@ Currently, **Linux** is the only supported operating system (tested on Ubuntu 20
 
 ## Installation
 
+### Static binary
+
 You can download a compiled binary [from the releases page](https://github.com/tobias-kuendig/hacompanion/releases) or alternatively use the provided
 `deb` or `rpm` packages.
 
 Just download the `_binary` file for your architecture and copy it to `~/.local/bin/hacompanion` (or any other path on your system).
 
+### Arch Linux
+
 Arch Linux users have the option to install the binary as an AUR package. Eg:
 ```
 yay -Sy hacompanion
 ```
+
+### NixOS
+
+<details>
+<summary>NixOS instructions</summary>
 
 For NixOS users there's a [flake](./flake.nix). Therefore you can simply run
 the following to give it a try:
@@ -68,8 +77,9 @@ Installing it:
         }
       ];
     };
-}
+};
 ```
+</details>
 
 You can now start the companion with the `hacompanion` command. But before doing so, you have to set up
 the configuration:
