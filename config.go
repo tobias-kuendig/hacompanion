@@ -24,8 +24,9 @@ type homeassistantConfig struct {
 }
 
 type companionConfig struct {
-	UpdateInterval   duration      `toml:"update_interval"`
-	RegistrationFile util.HomePath `toml:"registration_file"`
+	UpdateInterval         duration      `toml:"update_interval"`
+	RegistrationFile       util.HomePath `toml:"registration_file"`
+	SkipSensorInvalidation bool          `toml:"skip_sensor_invalidation"`
 }
 
 type notificationsConfig struct {

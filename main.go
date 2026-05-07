@@ -224,7 +224,7 @@ func (k *Kernel) Run(appCtx context.Context, quiet bool) error {
 
 	// Start the background processes.
 	k.bgProcesses.Add(1)
-	go c.RunBackgroundProcesses(ctx, k.bgProcesses)
+	go c.RunBackgroundProcesses(ctx, k.config, k.bgProcesses)
 	go handleSleep(c)
 
 	// Run the first update immediately on startup.

@@ -39,22 +39,25 @@ func (c *Companion) UpdateSensorData(ctx context.Context) {
 }
 
 // RunBackgroundProcesses starts all background processes.
-func (c *Companion) RunBackgroundProcesses(ctx context.Context, wg *sync.WaitGroup) {
+func (c *Companion) RunBackgroundProcesses(ctx context.Context, config *Config, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	var processWg sync.WaitGroup
 	processWg.Add(1)
 
-	go c.UpdateCompanionRunningState(ctx, &processWg)
+	go c.UpdateCompanionRunningState(ctx, config, &processWg)
 
 	processWg.Wait()
 }
 
 // UpdateCompanionRunningState updates the Companion running state.
-func (c *Companion) UpdateCompanionRunningState(ctx context.Context, wg *sync.WaitGroup) {
+func (c *Companion) UpdateCompanionRunningState(ctx context.Context, config *Config, wg *sync.WaitGroup) {
 	c.UpdateCompanionSensorData(true)
 	defer func() {
-		c.UpdateCompanionSensorData(false)
+		// Invalidate all sensor states on shutdown.
+		if !config.Companion.SkipSensorInvalidation {
+			c.UpdateCompanionSensorData(false)
+		}
 		wg.Done()
 	}()
 
