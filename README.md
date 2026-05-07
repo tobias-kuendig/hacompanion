@@ -81,9 +81,6 @@ Installing it:
 ```
 </details>
 
-You can now start the companion with the `hacompanion` command. But before doing so, you have to set up
-the configuration:
-
 ## Configuration and Setup
 
 1. Make sure you have the [Mobile App integration](https://www.home-assistant.io/integrations/mobile_app/) enabled in Home Assistant (it is on by default).
