@@ -1,33 +1,15 @@
 //go:build !windows
 // +build !windows
+
 package main
 
 import (
-	"context"
-	"encoding/json"
-	"errors"
-	"flag"
-	"fmt"
-	"hacompanion/api"
-	"hacompanion/entity"
-	"hacompanion/sensor"
-	"hacompanion/util"
-	"io/fs"
 	"log"
-	"os"
-	"os/signal"
-	"path/filepath"
-	"runtime"
-	"sync"
 	"syscall"
-	"time"
-
-	"github.com/BurntSushi/toml"
 	"github.com/godbus/dbus/v5"
 )
 
 func handleSleep(companion *Companion) {
-	 
 	conn, err := dbus.SystemBus()
 	if err != nil {
 		log.Println("D-bus is unavailable. Not handling login inhibitor")

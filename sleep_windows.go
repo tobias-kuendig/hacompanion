@@ -1,8 +1,7 @@
 //go:build windows
 // +build windows
-package main
 
+package main
 
 func handleSleep(companion *Companion) {
 }
-
