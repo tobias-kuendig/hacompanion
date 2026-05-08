@@ -6,6 +6,7 @@ package main
 import (
 	"log"
 	"syscall"
+
 	"github.com/godbus/dbus/v5"
 )
 
@@ -18,13 +19,11 @@ func handleSleep(companion *Companion) {
 	defer conn.Close()
 
 	var fd int
-	obj := conn.Object(
-		loginDestination,
-		dbus.ObjectPath(loginPath),
-	)
+	obj := conn.Object(loginDestination, loginPath)
 
-	err = obj.Call(loginMethodInhibit, 0,
-		inhibitorMethodSleep, AppID, inhibitorMessage, inhibitorModeDelay).Store(&fd)
+	err = obj.
+		Call(loginMethodInhibit, 0, inhibitorMethodSleep, AppID, inhibitorMessage, inhibitorModeDelay).
+		Store(&fd)
 
 	if err != nil {
 		log.Fatalf("error storing file descriptor: %v", err)
@@ -60,8 +59,9 @@ func handleSleep(companion *Companion) {
 		} else {
 			companion.UpdateCompanionSensorData(true)
 
-			err = obj.Call(loginMethodInhibit, 0,
-				inhibitorMethodSleep, AppID, inhibitorMessage, inhibitorModeDelay).Store(&fd)
+			err = obj.
+				Call(loginMethodInhibit, 0, inhibitorMethodSleep, AppID, inhibitorMessage, inhibitorModeDelay).
+				Store(&fd)
 			if err != nil {
 				log.Fatalf("error storing file descriptor: %v", err)
 				return
