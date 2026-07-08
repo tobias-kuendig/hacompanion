@@ -28,13 +28,13 @@ listen = ":8080"
 ##
 
 # Report the number of processes that are currently accessing your webcam.
-# This will send the number as reported by `lsmod | grep uvcvideo`.
+# This will send the number as reported by `lsmod | grep uvcvideo`. Unavailable on macOS.
 [sensor.webcam]
 enabled = true
 name = "Webcam Process Count"
 
 # Report the CPU temperature of all cores.
-# Note: Requires `lm-sensors` package to be installed locally.
+# Note: Requires `lm-sensors` package to be installed locally on Linux. Unavailable on macOS.
 [sensor.cpu_temp]
 enabled = true
 name = "CPU Temperature"
