@@ -91,5 +91,5 @@ func (pwr Power) optimisticRead(file string) string {
 		return ""
 	}
 
-	return string(b)
+	return strings.TrimSpace(string(b))
 }
