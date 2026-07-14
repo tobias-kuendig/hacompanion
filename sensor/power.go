@@ -94,7 +94,7 @@ func (pwr Power) optimisticRead(file string) string {
 		return ""
 	}
 
-	return strings.TrimRight(string(b), "\r\n")
+	return strings.TrimSpace(string(b))
 }
 
 func (pwr Power) resolveIcon(state any, charging bool) string {
