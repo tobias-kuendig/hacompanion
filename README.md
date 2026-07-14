@@ -7,7 +7,7 @@ This is an unofficial Desktop Companion App for [Home Assistant](https://www.hom
 The companion is running as a background process and sends local hardware information to your Home Assistant instance.
 Additionally, you can send notifications from Home Assistant to your Computer and display them using `notify-send`.
 
-Currently, **Linux** and **Mac OS** are supported supported. 
+Currently, **Linux** and **Mac OS** are supported. 
 
 
 ## Supported sensors
